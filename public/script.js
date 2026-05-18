@@ -4,7 +4,7 @@ const socket = io();
 let myUsername = '';
 let myColor = '#ff6b6b';
 let myAvatar = '☕';
-let currentDate = new Date(2026, 4, 1);
+let currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let eventsList = [];
 let weatherData = {}; // 날씨 캐시
 let typingTimeout = null;
@@ -70,6 +70,8 @@ avatarOptions.forEach(opt => {
         myAvatar = opt.dataset.avatar;
     });
 });
+
+usernameInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') joinBtn.click(); });
 
 joinBtn.addEventListener('click', () => {
     const val = usernameInput.value.trim();
@@ -192,7 +194,7 @@ chatForm.addEventListener('submit', (e) => {
         const reader = new FileReader();
         reader.onload = function(evt) {
             socket.emit('send_message', { 
-                username: myUsername, text: text, color: myColor,
+                username: myUsername, text: text, color: myColor, avatar: myAvatar,
                 fileData: evt.target.result, fileName: selectedFile.name, fileType: selectedFile.type
             });
             resetChatInput();
@@ -227,7 +229,7 @@ function appendMessage(msg) {
     
     if (msg.fileData) {
         if (msg.fileType && msg.fileType.startsWith('image/')) {
-            contentHtml += `<img src="${msg.fileData}" class="chat-file-preview" alt="${msg.fileName}" onclick="openImageModal('${msg.fileData}')">`;
+            contentHtml += `<img src="${msg.fileData}" class="chat-file-preview" alt="${msg.fileName}">`;
         } else {
             contentHtml += `<a href="${msg.fileData}" download="${msg.fileName}" class="chat-file-link">📁 ${msg.fileName} 다운로드</a>`;
         }
@@ -264,10 +266,16 @@ const imageModal = document.getElementById('image-modal');
 const modalImage = document.getElementById('modal-image');
 const closeImageModalBtn = document.getElementById('close-image-modal');
 
-window.openImageModal = function(src) {
+function openImageModal(src) {
     modalImage.src = src;
     imageModal.classList.remove('hidden');
 }
+// 이미지 클릭 이벤트 위임 (XSS 방지)
+chatMessages.addEventListener('click', (e) => {
+    if(e.target.classList.contains('chat-file-preview')) {
+        openImageModal(e.target.src);
+    }
+});
 closeImageModalBtn.addEventListener('click', () => imageModal.classList.add('hidden'));
 imageModal.addEventListener('click', (e) => {
     if(e.target === imageModal) imageModal.classList.add('hidden');
@@ -288,9 +296,16 @@ chatContainerNode.addEventListener('drop', (e) => {
     e.preventDefault();
     chatContainerNode.style.boxShadow = 'none';
     if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        selectedFile = e.dataTransfer.files[0];
-        // 드래그 앤 드롭 시 즉시 전송
-        chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        const droppedFile = e.dataTransfer.files[0];
+        if(droppedFile.size > 5 * 1024 * 1024) { alert('파일은 5MB 이하만 전송 가능합니다.'); return; }
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            socket.emit('send_message', {
+                username: myUsername, text: '', color: myColor, avatar: myAvatar,
+                fileData: evt.target.result, fileName: droppedFile.name, fileType: droppedFile.type
+            });
+        };
+        reader.readAsDataURL(droppedFile);
     }
 });
 
@@ -348,7 +363,43 @@ async function fetchWeather() {
 }
 
 const koreanHolidays = {
-    "2026-01-01": "신정", "2026-03-01": "삼일절", "2026-05-05": "어린이날", "2026-05-24": "부처님오신날", "2026-05-25": "대체공휴일", "2026-06-06": "현충일", "2026-08-15": "광복절", "2026-09-25": "추석", "2026-10-03": "개천절", "2026-10-09": "한글날", "2026-12-25": "기독탄신일"
+    // 2025
+    "2025-01-01": "신정", "2025-01-28": "설날 연휴", "2025-01-29": "설날", "2025-01-30": "설날 연휴",
+    "2025-03-01": "삼일절", "2025-05-05": "어린이날", "2025-05-06": "대체공휴일",
+    "2025-05-12": "부처님오신날", "2025-06-06": "현충일", "2025-08-15": "광복절",
+    "2025-10-03": "개천절", "2025-10-05": "추석 연휴", "2025-10-06": "추석", "2025-10-07": "추석 연휴", "2025-10-08": "대체공휴일",
+    "2025-10-09": "한글날", "2025-12-25": "기독탄신일",
+    // 2026
+    "2026-01-01": "신정", "2026-02-16": "설날 연휴", "2026-02-17": "설날", "2026-02-18": "설날 연휴",
+    "2026-03-01": "삼일절", "2026-03-02": "대체공휴일",
+    "2026-05-05": "어린이날", "2026-05-24": "부처님오신날", "2026-05-25": "대체공휴일",
+    "2026-06-06": "현충일", "2026-08-15": "광복절", "2026-08-17": "대체공휴일",
+    "2026-09-24": "추석 연휴", "2026-09-25": "추석", "2026-09-26": "추석 연휴",
+    "2026-10-03": "개천절", "2026-10-05": "대체공휴일", "2026-10-09": "한글날", "2026-12-25": "기독탄신일",
+    // 2027
+    "2027-01-01": "신정", "2027-02-06": "설날 연휴", "2027-02-07": "설날", "2027-02-08": "설날 연휴",
+    "2027-03-01": "삼일절", "2027-05-05": "어린이날", "2027-05-13": "부처님오신날",
+    "2027-06-06": "현충일", "2027-08-15": "광복절", "2027-08-16": "대체공휴일",
+    "2027-09-14": "추석 연휴", "2027-09-15": "추석", "2027-09-16": "추석 연휴",
+    "2027-10-03": "개천절", "2027-10-04": "대체공휴일", "2027-10-09": "한글날", "2027-12-25": "기독탄신일",
+    // 2028
+    "2028-01-01": "신정", "2028-01-25": "설날 연휴", "2028-01-26": "설날", "2028-01-27": "설날 연휴",
+    "2028-03-01": "삼일절", "2028-05-02": "부처님오신날", "2028-05-05": "어린이날",
+    "2028-06-06": "현충일", "2028-08-15": "광복절",
+    "2028-10-02": "추석 연휴", "2028-10-03": "추석/개천절", "2028-10-04": "추석 연휴",
+    "2028-10-09": "한글날", "2028-12-25": "기독탄신일",
+    // 2029
+    "2029-01-01": "신정", "2029-02-12": "설날 연휴", "2029-02-13": "설날", "2029-02-14": "설날 연휴",
+    "2029-03-01": "삼일절", "2029-05-05": "어린이날", "2029-05-20": "부처님오신날",
+    "2029-06-06": "현충일", "2029-08-15": "광복절",
+    "2029-09-21": "추석 연휴", "2029-09-22": "추석", "2029-09-23": "추석 연휴",
+    "2029-10-03": "개천절", "2029-10-09": "한글날", "2029-12-25": "기독탄신일",
+    // 2030
+    "2030-01-01": "신정", "2030-02-02": "설날 연휴", "2030-02-03": "설날", "2030-02-04": "설날 연휴",
+    "2030-03-01": "삼일절", "2030-05-05": "어린이날", "2030-05-09": "부처님오신날",
+    "2030-06-06": "현충일", "2030-08-15": "광복절",
+    "2030-09-11": "추석 연휴", "2030-09-12": "추석", "2030-09-13": "추석 연휴",
+    "2030-10-03": "개천절", "2030-10-09": "한글날", "2030-12-25": "기독탄신일"
 };
 
 const monthDisplay = document.getElementById('month-display');
@@ -437,7 +488,11 @@ function initCalendar() {
         cell.addEventListener('click', (e) => {
             if(!e.target.closest('.event-item')) {
                 eventDateInput.value = dateStr;
-                eventEndDateInput.value = ''; 
+                eventEndDateInput.value = '';
+                // 모바일에서 일정 입력 폼으로 자동 스크롤
+                if(window.innerWidth <= 900) {
+                    document.querySelector('.add-event-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
         });
         
@@ -483,12 +538,14 @@ addEventBtn.addEventListener('click', () => {
         resetEventForm();
     } else {
         if (endDate && endDate >= startDate) {
+            const eventsToAdd = [];
             let current = new Date(startDate); const end = new Date(endDate);
             while (current <= end) {
                 const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
-                socket.emit('add_event', { date: dateStr, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday });
+                eventsToAdd.push({ date: dateStr, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday });
                 current.setDate(current.getDate() + 1);
             }
+            socket.emit('add_events_batch', { events: eventsToAdd });
         } else {
             socket.emit('add_event', { date: startDate, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday });
         }
