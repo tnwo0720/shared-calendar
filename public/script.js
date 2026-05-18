@@ -289,6 +289,11 @@ function initCalendar() {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
+    // 달의 주 수에 따라 동적으로 5줄 또는 6줄로 변경
+    const totalCells = firstDay + daysInMonth;
+    const rows = Math.ceil(totalCells / 7);
+    calendarGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    
     for(let i = 0; i < firstDay; i++) {
         const cell = document.createElement('div'); cell.className = 'day-cell empty'; calendarGrid.appendChild(cell);
     }
@@ -336,8 +341,14 @@ function initCalendar() {
             if(e.isDday) evDiv.style.border = '2px solid white'; // D-Day 하이라이트
             
             evDiv.innerHTML = `
-                <div class="event-info"><span class="event-author">${e.username}</span><span>${e.isDday ? '🎯' : ''} ${e.title}</span></div>
-                <button class="del-btn" onclick="deleteEvent(event, ${e.id})">×</button>
+                <div class="event-info">
+                    <span class="event-author">${e.username}</span>
+                    <span class="event-title-text">${e.isDday ? '🎯' : ''} ${e.title}</span>
+                </div>
+                <div class="event-actions">
+                    <button class="edit-btn" title="수정" onclick="startEditEventWrap(event, ${e.id})">✏️</button>
+                    <button class="del-btn" title="삭제" onclick="deleteEvent(event, ${e.id})">×</button>
+                </div>
             `;
             
             // 드래그 앤 드롭 시작 이벤트
@@ -345,8 +356,11 @@ function initCalendar() {
                 evt.dataTransfer.setData('text/plain', e.id);
             });
             
+            // 클릭 시 텍스트 확장(말줄임 해제) 토글
             evDiv.addEventListener('click', (evt) => {
-                if(!evt.target.classList.contains('del-btn')) startEditEvent(e);
+                if(!evt.target.closest('button')) {
+                    evDiv.classList.toggle('expanded');
+                }
             });
             cell.appendChild(evDiv);
         });
@@ -429,6 +443,12 @@ function resetEventForm() {
 window.deleteEvent = function(e, id) {
     e.stopPropagation();
     if(confirm("이 일정을 삭제하시겠습니까?")) { socket.emit('delete_event', id); resetEventForm(); }
+}
+
+window.startEditEventWrap = function(e, id) {
+    e.stopPropagation();
+    const eventObj = eventsList.find(ev => ev.id === id);
+    if(eventObj) startEditEvent(eventObj);
 }
 
 checkSavedLogin();
