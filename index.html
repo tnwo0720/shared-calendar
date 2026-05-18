@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프리미엄 캘린더 & 채팅</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="light-mode">
+    <div class="bg-image"></div>
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 이미지 크게 보기 모달 -->
+    <div id="image-modal" class="overlay hidden" style="z-index: 3000;">
+        <span id="close-image-modal" style="position:absolute; top:20px; right:30px; font-size:40px; color:white; cursor:pointer; font-weight:bold;">&times;</span>
+        <img id="modal-image" style="max-width:90%; max-height:90%; border-radius:10px; box-shadow: 0 10px 50px rgba(0,0,0,0.8);" src="" alt="확대 이미지">
+    </div>
+
+    <!-- 일정 상세 보기 모달 -->
+    <div id="event-detail-modal" class="overlay hidden" style="z-index: 3000;">
+        <div class="glass-panel" style="padding: 2rem; width: 350px; max-width: 90%; color: var(--text-main); position: relative;">
+            <span id="close-event-detail" style="position:absolute; top:15px; right:20px; font-size:24px; cursor:pointer; opacity:0.7;">&times;</span>
+            <div id="detail-event-date" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight:600;"></div>
+            <h2 id="detail-event-title" style="margin-bottom: 1.5rem; word-break: break-all; font-size: 1.2rem; line-height:1.4;"></h2>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 2rem;">
+                <div id="detail-event-color" style="width: 15px; height: 15px; border-radius: 50%;"></div>
+                <span id="detail-event-author" style="font-size: 0.95rem; font-weight:700;"></span>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="detail-edit-btn" class="btn" style="width: auto; padding: 0.5rem 1.2rem;">수정하기</button>
+                <button id="detail-del-btn" class="btn-outline" style="width: auto; padding: 0.5rem 1.2rem; color: #d94a4a; border-color: #d94a4a;">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-overlay" class="overlay hidden">
+        <div class="login-box glass-panel">
+            <h2>환영합니다!</h2>
+            <p>프로필을 설정해주세요.</p>
+            <input type="text" id="username-input" placeholder="이름 (예: 민재)" autocomplete="off" maxlength="10">
+            <div class="color-picker">
+                <div class="color-option selected" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
+                <div class="color-option" style="background: #4ecdc4;" data-color="#4ecdc4"></div>
+                <div class="color-option" style="background: #ffe66d;" data-color="#ffe66d"></div>
+                <div class="color-option" style="background: #43aa8b;" data-color="#43aa8b"></div>
+                <div class="color-option" style="background: #c77dff;" data-color="#c77dff"></div>
+                <div class="color-option" style="background: #ff9f1c;" data-color="#ff9f1c"></div>
+            </div>
+            <button id="join-btn" class="btn">입장하기</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- 메인 달력 -->
+        <main class="calendar-section glass-panel">
+            <header class="cal-header">
+                <button id="prev-month" class="icon-btn">&lt;</button>
+                <h2 id="month-display">2026년 5월</h2>
+                <div style="display:flex; gap:10px;">
+                    <button id="next-month" class="icon-btn">&gt;</button>
+                    <!-- 다크모드 토글 버튼 -->
+                    <button id="theme-toggle" class="icon-btn theme-toggle" title="다크 모드 변경">🌙</button>
+                </div>
+            </header>
+            
+            <div class="weekdays">
+                <div class="sunday">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="saturday">토</div>
+            </div>
+            
+            <div id="calendar-grid" class="calendar-grid"></div>
+        </main>
+
+        <!-- 우측 사이드바 -->
+        <aside class="sidebar-section">
+            
+            <!-- 다가오는 디데이 배너 -->
+            <div id="dday-banner" class="dday-banner glass-panel hidden">
+                <div class="dday-icon">🎯</div>
+                <div class="dday-info">
+                    <div id="dday-title" class="dday-title">가장 가까운 일정</div>
+                    <div id="dday-count" class="dday-count">D-Day</div>
+                </div>
+            </div>
+
+            <!-- 내 프로필 & 접속자 -->
+            <div class="user-info glass-panel">
+                <div class="my-profile-header">
+                    <div id="my-color-badge" class="color-badge"></div>
+                    <span id="my-username-display">로딩중...</span>
+                    <button id="logout-btn" class="btn-small">이름 변경</button>
+                </div>
+                <div class="online-users-section">
+                    <span class="online-title">🟢 접속 중인 친구들</span>
+                    <div id="active-users-container" class="active-users-list"></div>
+                </div>
+            </div>
+
+            <!-- 일정 폼 -->
+            <div class="add-event-box glass-panel">
+                <h3 id="event-form-title">새로운 일정 공유</h3>
+                <input type="hidden" id="edit-event-id">
+                <div class="date-inputs">
+                    <input type="date" id="event-date" title="시작일">
+                    <span id="date-tilde" style="align-self: center; font-weight: bold;">~</span>
+                    <input type="date" id="event-end-date" title="종료일">
+                </div>
+                <input type="text" id="event-title" placeholder="어떤 일정인가요?" autocomplete="off">
+                <label class="dday-checkbox">
+                    <input type="checkbox" id="event-is-dday"> 🎯 중요 D-Day로 고정하기
+                </label>
+                <div class="event-form-actions">
+                    <button id="add-event-btn" class="btn">일정 추가</button>
+                    <button id="cancel-edit-btn" class="btn-outline hidden">취소</button>
+                </div>
+            </div>
+
+            <!-- 채팅방 -->
+            <div class="chat-container glass-panel">
+                <div class="chat-header">
+                    <h3>실시간 소통방 💬</h3>
+                </div>
+                <div id="chat-messages" class="chat-messages"></div>
+                
+                <!-- 입력 중 표시기 -->
+                <div id="typing-indicator" class="typing-indicator hidden">누군가 입력 중...</div>
+                
+                <form id="chat-form" class="chat-form">
+                    <label for="chat-file-input" class="file-upload-btn" title="파일 전송">📎</label>
+                    <input type="file" id="chat-file-input" class="hidden">
+                    <input type="text" id="chat-input" placeholder="메시지 입력..." autocomplete="off">
+                    <button type="submit" class="btn-send">전송</button>
+                </form>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

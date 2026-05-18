@@ -255,6 +255,42 @@ chatContainerNode.addEventListener('drop', (e) => {
     }
 });
 
+// 일정 상세 모달 로직
+const eventDetailModal = document.getElementById('event-detail-modal');
+const detailEventTitle = document.getElementById('detail-event-title');
+const detailEventDate = document.getElementById('detail-event-date');
+const detailEventAuthor = document.getElementById('detail-event-author');
+const detailEventColor = document.getElementById('detail-event-color');
+const detailEditBtn = document.getElementById('detail-edit-btn');
+const detailDelBtn = document.getElementById('detail-del-btn');
+const closeEventDetail = document.getElementById('close-event-detail');
+
+function openEventDetailModal(e) {
+    detailEventTitle.textContent = e.title;
+    detailEventDate.textContent = e.date;
+    detailEventAuthor.textContent = e.username;
+    detailEventColor.style.backgroundColor = e.color;
+    
+    detailEditBtn.onclick = () => {
+        eventDetailModal.classList.add('hidden');
+        startEditEvent(e);
+    };
+    detailDelBtn.onclick = () => {
+        if(confirm("이 일정을 삭제하시겠습니까?")) {
+            socket.emit('delete_event', e.id);
+            eventDetailModal.classList.add('hidden');
+            resetEventForm();
+        }
+    };
+    
+    eventDetailModal.classList.remove('hidden');
+}
+
+closeEventDetail.addEventListener('click', () => eventDetailModal.classList.add('hidden'));
+eventDetailModal.addEventListener('click', (e) => {
+    if(e.target === eventDetailModal) eventDetailModal.classList.add('hidden');
+});
+
 // 날씨 API 연동 (Open-Meteo)
 async function fetchWeather() {
     try {
@@ -345,10 +381,6 @@ function initCalendar() {
                     <span class="event-author">${e.username}</span>
                     <span class="event-title-text">${e.isDday ? '🎯' : ''} ${e.title}</span>
                 </div>
-                <div class="event-actions">
-                    <button class="edit-btn" title="수정" onclick="startEditEventWrap(event, ${e.id})">✏️</button>
-                    <button class="del-btn" title="삭제" onclick="deleteEvent(event, ${e.id})">×</button>
-                </div>
             `;
             
             // 드래그 앤 드롭 시작 이벤트
@@ -356,11 +388,9 @@ function initCalendar() {
                 evt.dataTransfer.setData('text/plain', e.id);
             });
             
-            // 클릭 시 텍스트 확장(말줄임 해제) 토글
-            evDiv.addEventListener('click', (evt) => {
-                if(!evt.target.closest('button')) {
-                    evDiv.classList.toggle('expanded');
-                }
+            // 클릭 시 팝업(모달) 열기
+            evDiv.addEventListener('click', () => {
+                openEventDetailModal(e);
             });
             cell.appendChild(evDiv);
         });
