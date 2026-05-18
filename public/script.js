@@ -7,6 +7,8 @@ let currentDate = new Date(2026, 4, 1);
 let eventsList = [];
 let weatherData = {}; // 날씨 캐시
 let typingTimeout = null;
+const bgmAudio = new Audio('bgm.mp3');
+bgmAudio.loop = true;
 
 // DOM
 const loginOverlay = document.getElementById('login-overlay');
@@ -18,6 +20,7 @@ const myUsernameDisplay = document.getElementById('my-username-display');
 const logoutBtn = document.getElementById('logout-btn');
 const toastContainer = document.getElementById('toast-container');
 const themeToggle = document.getElementById('theme-toggle');
+const bgmToggle = document.getElementById('bgm-toggle');
 
 const eventIdInput = document.getElementById('edit-event-id');
 const eventDateInput = document.getElementById('event-date');
@@ -83,6 +86,14 @@ function updateProfileUI() {
     myColorBadge.style.backgroundColor = myColor;
     eventDateInput.valueAsDate = new Date();
     socket.emit('user_joined', { username: myUsername, color: myColor });
+    
+    // 음악 자동 재생 시도 (사용자 상호작용 후)
+    if(bgmAudio.paused) {
+        bgmAudio.play().then(() => {
+            bgmToggle.textContent = '⏸️';
+            bgmIcon.classList.add('playing');
+        }).catch(e => console.log("자동 재생 대기 중 (화면 클릭 시 재생됨)"));
+    }
 }
 
 function showToast(message, color) {
@@ -252,6 +263,23 @@ chatContainerNode.addEventListener('drop', (e) => {
         selectedFile = e.dataTransfer.files[0];
         // 드래그 앤 드롭 시 즉시 전송
         chatForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
+});
+
+// BGM 로직
+const bgmAudio = document.getElementById('bgm-audio');
+const bgmToggle = document.getElementById('bgm-toggle');
+const bgmIcon = document.querySelector('.bgm-icon');
+
+bgmToggle.addEventListener('click', () => {
+    if (bgmAudio.paused) {
+        bgmAudio.play().catch(e => console.log(e));
+        bgmToggle.textContent = '⏸️';
+        bgmIcon.classList.add('playing');
+    } else {
+        bgmAudio.pause();
+        bgmToggle.textContent = '▶️';
+        bgmIcon.classList.remove('playing');
     }
 });
 
