@@ -25,18 +25,32 @@ if (fs.existsSync(dataFile)) {
     } catch(e) { console.log('데이터 읽기 오류:', e); }
 }
 
-// 데이터 파일에 쓰기(저장) 함수
+// 데이터 파일에 쓰기(저장) 함수 — fileData(Base64)는 제외하여 용량 폭발 방지
 function saveData() {
-    try { fs.writeFileSync(dataFile, JSON.stringify({ events, chatHistory })); } 
-    catch(e) { console.log('데이터 저장 오류:', e); }
+    try {
+        const chatToSave = chatHistory.map(msg => {
+            const { fileData, ...rest } = msg;
+            return rest;
+        });
+        fs.writeFileSync(dataFile, JSON.stringify({ events, chatHistory: chatToSave }));
+    } catch(e) { console.log('데이터 저장 오류:', e); }
 }
 
 io.on('connection', (socket) => {
     socket.emit('init_data', { events, chatHistory });
 
     socket.on('user_joined', (userData) => {
+        const isNew = !activeUsers[socket.id];
         activeUsers[socket.id] = userData;
         io.emit('update_users', Object.values(activeUsers));
+        if(isNew) {
+            io.emit('receive_message', {
+                id: Date.now(), username: 'SYSTEM', text: `${userData.username}님이 입장했습니다 👋`,
+                color: '#888', avatar: '📢', isSystem: true,
+                time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                reactions: { '👍': 0, '❤️': 0 }
+            });
+        }
     });
 
     socket.on('send_message', (data) => {
@@ -47,14 +61,15 @@ io.on('connection', (socket) => {
             color: data.color,
             avatar: data.avatar || '☕',
             reactions: { '👍': 0, '❤️': 0 },
+            replyTo: data.replyTo || null,
             fileData: data.fileData || null,
             fileName: data.fileName || null,
             fileType: data.fileType || null,
             time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
         };
         chatHistory.push(message);
-        if (chatHistory.length > 50) chatHistory.shift(); // 메모리 관리를 위해 최근 50개 유지
-        saveData(); // 채팅 발생 시 저장
+        if (chatHistory.length > 200) chatHistory.shift(); // 최근 200개 유지
+        saveData();
         io.emit('receive_message', message);
     });
     
@@ -79,17 +94,43 @@ io.on('connection', (socket) => {
 
     socket.on('add_event', (eventData) => {
         const newEvent = {
-            id: Date.now() + Math.floor(Math.random() * 1000), // 고유 ID 확률 높임
+            id: Date.now() + Math.floor(Math.random() * 1000),
             date: eventData.date,
             title: eventData.title,
             username: eventData.username,
             color: eventData.color,
             avatar: eventData.avatar || '☕',
-            isDday: eventData.isDday || false
+            isDday: eventData.isDday || false,
+            category: eventData.category || ''
         };
         events.push(newEvent);
-        saveData(); // 일정 추가 시 저장
+        saveData();
         socket.broadcast.emit('event_added', newEvent);
+        io.emit('sync_events', events);
+    });
+
+    // 다중 일자 일정 일괄 추가 (알림 1회만 발생)
+    socket.on('add_events_batch', (batchData) => {
+        const newEvents = batchData.events.map((eventData, i) => ({
+            id: Date.now() + i * 10 + Math.floor(Math.random() * 10),
+            date: eventData.date,
+            title: eventData.title,
+            username: eventData.username,
+            color: eventData.color,
+            avatar: eventData.avatar || '☕',
+            isDday: eventData.isDday || false,
+            category: eventData.category || ''
+        }));
+        events.push(...newEvents);
+        saveData();
+        // 알림은 1번만
+        const first = batchData.events[0];
+        const count = batchData.events.length;
+        socket.broadcast.emit('event_added', { 
+            username: first.username, 
+            title: `${first.title} (${count}일간)`, 
+            color: first.color 
+        });
         io.emit('sync_events', events);
     });
     
@@ -99,21 +140,28 @@ io.on('connection', (socket) => {
             events[index].title = eventData.title;
             events[index].date = eventData.date;
             if(eventData.isDday !== undefined) events[index].isDday = eventData.isDday;
-            saveData(); // 일정 수정 시 저장
+            saveData();
             io.emit('sync_events', events);
         }
     });
 
     socket.on('delete_event', (eventId) => {
         events = events.filter(e => e.id !== eventId);
-        saveData(); // 일정 삭제 시 저장
+        saveData();
         io.emit('sync_events', events);
     });
 
     socket.on('disconnect', () => {
         if (activeUsers[socket.id]) {
+            const name = activeUsers[socket.id].username;
             delete activeUsers[socket.id];
             io.emit('update_users', Object.values(activeUsers));
+            io.emit('receive_message', {
+                id: Date.now(), username: 'SYSTEM', text: `${name}님이 나갔습니다`,
+                color: '#888', avatar: '📢', isSystem: true,
+                time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                reactions: { '👍': 0, '❤️': 0 }
+            });
         }
     });
 });

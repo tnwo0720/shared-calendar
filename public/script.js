@@ -6,8 +6,11 @@ let myColor = '#ff6b6b';
 let myAvatar = '☕';
 let currentDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let eventsList = [];
-let weatherData = {}; // 날씨 캐시
+let weatherData = {};
 let typingTimeout = null;
+let myCategory = '';
+let replyToMsg = null;
+let lastChatDate = '';
 
 // DOM
 const loginOverlay = document.getElementById('login-overlay');
@@ -103,6 +106,48 @@ function updateProfileUI() {
     socket.emit('user_joined', { username: myUsername, color: myColor, avatar: myAvatar });
 }
 
+// 카테고리 선택
+const catOptions = document.querySelectorAll('.cat-option');
+catOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+        catOptions.forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        myCategory = opt.dataset.cat;
+    });
+});
+
+// 이모지 피커
+const emojiBtn = document.getElementById('emoji-btn');
+const emojiPicker = document.getElementById('emoji-picker');
+emojiBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    emojiPicker.classList.toggle('hidden');
+});
+emojiPicker.querySelectorAll('span').forEach(em => {
+    em.addEventListener('click', () => {
+        chatInput.value += em.textContent;
+        emojiPicker.classList.add('hidden');
+        chatInput.focus();
+    });
+});
+document.addEventListener('click', () => emojiPicker.classList.add('hidden'));
+
+// 답장 기능
+const replyPreview = document.getElementById('reply-preview');
+const replyPreviewText = document.getElementById('reply-preview-text');
+const replyCancelBtn = document.getElementById('reply-cancel');
+
+function setReply(msg) {
+    replyToMsg = { username: msg.username, text: msg.text || msg.fileName || '' };
+    replyPreviewText.textContent = `↩️ ${msg.username}: ${replyToMsg.text}`;
+    replyPreview.classList.remove('hidden');
+    chatInput.focus();
+}
+replyCancelBtn.addEventListener('click', () => {
+    replyToMsg = null;
+    replyPreview.classList.add('hidden');
+});
+
 function showToast(message, color) {
     const toast = document.createElement('div');
     toast.className = 'toast'; toast.style.borderLeftColor = color;
@@ -114,7 +159,9 @@ function showToast(message, color) {
 // Socket
 socket.on('init_data', (data) => {
     eventsList = data.events;
-    document.getElementById('chat-messages').innerHTML = '';
+    const cm = document.getElementById('chat-messages');
+    cm.innerHTML = '';
+    lastChatDate = '';
     data.chatHistory.forEach(msg => appendMessage(msg));
     if(myUsername) { initCalendar(); updateDdayBanner(); }
 });
@@ -201,7 +248,7 @@ chatForm.addEventListener('submit', (e) => {
         };
         reader.readAsDataURL(selectedFile);
     } else {
-        socket.emit('send_message', { username: myUsername, text: text, color: myColor, avatar: myAvatar });
+        socket.emit('send_message', { username: myUsername, text: text, color: myColor, avatar: myAvatar, replyTo: replyToMsg });
         resetChatInput();
     }
 });
@@ -212,20 +259,46 @@ function resetChatInput() {
     selectedFile = null;
     chatFileInput.value = '';
     socket.emit('stop_typing');
+    replyToMsg = null;
+    replyPreview.classList.add('hidden');
 }
 
 function appendMessage(msg) {
+    // 시스템 메시지
+    if(msg.isSystem) {
+        const sysDiv = document.createElement('div');
+        sysDiv.className = 'system-message';
+        sysDiv.textContent = msg.text;
+        chatMessages.appendChild(sysDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return;
+    }
+    
+    // 날짜 구분선
+    const msgDate = msg.time ? new Date().toLocaleDateString('ko-KR', { year:'numeric', month:'long', day:'numeric', weekday:'long' }) : '';
+    if(msg.time && msgDate !== lastChatDate) {
+        lastChatDate = msgDate;
+        const divider = document.createElement('div');
+        divider.className = 'chat-date-divider';
+        divider.textContent = msgDate;
+        chatMessages.appendChild(divider);
+    }
+    
     const isMine = msg.username === myUsername;
     const div = document.createElement('div');
     div.className = `message ${isMine ? 'mine' : 'others'}`;
     
-    // 멘션(@이름) 파싱 적용
     let parsedText = msg.text || '';
     if (parsedText) {
         parsedText = parsedText.replace(/@([가-힣a-zA-Z0-9]+)/g, '<span style="color:var(--primary); font-weight:800; background:rgba(195,154,107,0.2); padding:2px 4px; border-radius:4px;">@$1</span>');
     }
     
-    let contentHtml = parsedText ? `<div>${parsedText}</div>` : '';
+    let contentHtml = '';
+    // 답장 표시
+    if(msg.replyTo) {
+        contentHtml += `<div class="reply-bubble">↩️ ${msg.replyTo.username}: ${msg.replyTo.text}</div>`;
+    }
+    contentHtml += parsedText ? `<div>${parsedText}</div>` : '';
     
     if (msg.fileData) {
         if (msg.fileType && msg.fileType.startsWith('image/')) {
@@ -237,7 +310,8 @@ function appendMessage(msg) {
 
     div.innerHTML = `
         <div class="msg-header"><div class="msg-avatar" style="background:${msg.color}">${msg.avatar || '☕'}</div>
-        <span>${msg.username}</span><span style="font-size:0.7rem; opacity:0.7;">${msg.time}</span></div>
+        <span>${msg.username}</span><span style="font-size:0.7rem; opacity:0.7;">${msg.time}</span>
+        <button class="msg-reply-btn" title="답장">↩️</button></div>
         <div class="msg-bubble-wrapper">
             <div class="msg-bubble">${contentHtml}</div>
             <div class="msg-reactions">
@@ -246,6 +320,8 @@ function appendMessage(msg) {
             </div>
         </div>
     `;
+    // 답장 버튼 클릭
+    div.querySelector('.msg-reply-btn').addEventListener('click', () => setReply(msg));
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
@@ -424,8 +500,10 @@ function initCalendar() {
         const cell = document.createElement('div'); cell.className = 'day-cell empty'; calendarGrid.appendChild(cell);
     }
     
+    const today = new Date();
     for(let i = 1; i <= daysInMonth; i++) {
         const cell = document.createElement('div'); cell.className = 'day-cell';
+        if(year === today.getFullYear() && month === today.getMonth() && i === today.getDate()) cell.classList.add('today-cell');
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
         const dayOfWeek = new Date(year, month, i).getDay(); 
         
@@ -469,7 +547,7 @@ function initCalendar() {
             evDiv.innerHTML = `
                 <div class="event-info">
                     <span class="event-author">${e.username}</span>
-                    <span class="event-title-text">${e.isDday ? '🎯' : ''} ${e.title}</span>
+                    <span class="event-title-text">${e.category || ''}${e.isDday ? '🎯' : ''} ${e.title}</span>
                 </div>
             `;
             
@@ -542,12 +620,12 @@ addEventBtn.addEventListener('click', () => {
             let current = new Date(startDate); const end = new Date(endDate);
             while (current <= end) {
                 const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
-                eventsToAdd.push({ date: dateStr, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday });
+                eventsToAdd.push({ date: dateStr, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday, category: myCategory });
                 current.setDate(current.getDate() + 1);
             }
             socket.emit('add_events_batch', { events: eventsToAdd });
         } else {
-            socket.emit('add_event', { date: startDate, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday });
+            socket.emit('add_event', { date: startDate, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday, category: myCategory });
         }
         eventTitleInput.value = ''; eventEndDateInput.value = ''; eventIsDdayInput.checked = false;
     }
