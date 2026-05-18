@@ -17,6 +17,23 @@
         <img id="modal-image" style="max-width:90%; max-height:90%; border-radius:10px; box-shadow: 0 10px 50px rgba(0,0,0,0.8);" src="" alt="확대 이미지">
     </div>
 
+    <!-- 일정 상세 보기 모달 -->
+    <div id="event-detail-modal" class="overlay hidden" style="z-index: 3000;">
+        <div class="glass-panel" style="padding: 2rem; width: 350px; max-width: 90%; color: var(--text-main); position: relative;">
+            <span id="close-event-detail" style="position:absolute; top:15px; right:20px; font-size:24px; cursor:pointer; opacity:0.7;">&times;</span>
+            <div id="detail-event-date" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight:600;"></div>
+            <h2 id="detail-event-title" style="margin-bottom: 1.5rem; word-break: break-all; font-size: 1.2rem; line-height:1.4;"></h2>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 2rem;">
+                <div id="detail-event-color" style="width: 15px; height: 15px; border-radius: 50%;"></div>
+                <span id="detail-event-author" style="font-size: 0.95rem; font-weight:700;"></span>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="detail-edit-btn" class="btn" style="width: auto; padding: 0.5rem 1.2rem;">수정하기</button>
+                <button id="detail-del-btn" class="btn-outline" style="width: auto; padding: 0.5rem 1.2rem; color: #d94a4a; border-color: #d94a4a;">삭제</button>
+            </div>
+        </div>
+    </div>
+
     <div id="login-overlay" class="overlay hidden">
         <div class="login-box glass-panel">
             <h2>환영합니다!</h2>
