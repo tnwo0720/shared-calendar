@@ -131,38 +131,48 @@
                 </div>
             </div>
 
-            <!-- 채팅방 -->
-            <div class="chat-container glass-panel">
-                <div class="chat-header">
-                    <h3>실시간 소통방 💬</h3>
-                </div>
-                <div id="chat-messages" class="chat-messages"></div>
-                
-                <!-- 입력 중 표시기 -->
-                <div id="typing-indicator" class="typing-indicator hidden">누군가 입력 중...</div>
-                
-                <!-- 답장 미리보기 -->
-                <div id="reply-preview" class="reply-preview hidden">
-                    <span id="reply-preview-text"></span>
-                    <button type="button" id="reply-cancel" class="reply-cancel">&times;</button>
-                </div>
-                
-                <form id="chat-form" class="chat-form">
-                    <label for="chat-file-input" class="file-upload-btn" title="파일 전송">📎</label>
-                    <input type="file" id="chat-file-input" class="hidden">
-                    <div style="position:relative;">
-                        <button type="button" id="emoji-btn" class="file-upload-btn" title="이모지">😊</button>
-                        <div id="emoji-picker" class="emoji-picker hidden">
-                            <span>😊</span><span>😂</span><span>❤️</span><span>👍</span><span>🔥</span><span>🎉</span>
-                            <span>😍</span><span>🤣</span><span>😭</span><span>🥺</span><span>✨</span><span>💕</span>
-                            <span>👏</span><span>🙏</span><span>💪</span><span>🤔</span><span>😎</span><span>🥳</span>
-                        </div>
-                    </div>
-                    <input type="text" id="chat-input" placeholder="메시지 입력..." autocomplete="off">
-                    <button type="submit" class="btn-send">전송</button>
-                </form>
-            </div>
         </aside>
+    </div>
+
+    <!-- 플로팅 채팅 버튼 -->
+    <button id="chat-fab" class="chat-fab">
+        💬
+        <span id="unread-badge" class="unread-badge hidden">0</span>
+    </button>
+
+    <!-- 플로팅 채팅 패널 -->
+    <div id="chat-panel" class="chat-panel hidden">
+        <div class="chat-container glass-panel">
+            <div class="chat-header">
+                <h3>실시간 소통방 💬</h3>
+                <button id="chat-close" class="chat-close-btn">&times;</button>
+            </div>
+            <div id="chat-messages" class="chat-messages"></div>
+            
+            <!-- 입력 중 표시기 -->
+            <div id="typing-indicator" class="typing-indicator hidden">누군가 입력 중...</div>
+            
+            <!-- 답장 미리보기 -->
+            <div id="reply-preview" class="reply-preview hidden">
+                <span id="reply-preview-text"></span>
+                <button type="button" id="reply-cancel" class="reply-cancel">&times;</button>
+            </div>
+            
+            <form id="chat-form" class="chat-form">
+                <label for="chat-file-input" class="file-upload-btn" title="파일 전송">📎</label>
+                <input type="file" id="chat-file-input" class="hidden">
+                <div style="position:relative;">
+                    <button type="button" id="emoji-btn" class="file-upload-btn" title="이모지">😊</button>
+                    <div id="emoji-picker" class="emoji-picker hidden">
+                        <span>😊</span><span>😂</span><span>❤️</span><span>👍</span><span>🔥</span><span>🎉</span>
+                        <span>😍</span><span>🤣</span><span>😭</span><span>🥺</span><span>✨</span><span>💕</span>
+                        <span>👏</span><span>🙏</span><span>💪</span><span>🤔</span><span>😎</span><span>🥳</span>
+                    </div>
+                </div>
+                <input type="text" id="chat-input" placeholder="메시지 입력..." autocomplete="off">
+                <button type="submit" class="btn-send">전송</button>
+            </form>
+        </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>

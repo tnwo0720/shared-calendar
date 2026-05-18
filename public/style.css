@@ -132,9 +132,20 @@ body.dark-mode .dday-banner { background: linear-gradient(135deg, #7b5836, #9c6e
 .dday-checkbox { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; cursor: pointer; }
 .event-form-actions { display: flex; gap: 0.5rem; }
 
-/* Chat */
-.chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
-.chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--input-bg); }
+/* Floating Chat */
+.chat-fab { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #e2a76f); color: white; border: none; font-size: 1.5rem; cursor: pointer; box-shadow: 0 6px 20px rgba(195,154,107,0.5); z-index: 900; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+.chat-fab:hover { transform: scale(1.1); box-shadow: 0 8px 30px rgba(195,154,107,0.7); }
+.chat-fab:active { transform: scale(0.95); }
+.unread-badge { position: absolute; top: -5px; right: -5px; background: #e11d48; color: white; font-size: 0.7rem; font-weight: 800; min-width: 20px; height: 20px; border-radius: 10px; display: flex; align-items: center; justify-content: center; animation: popIn 0.3s ease; }
+@keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+.chat-panel { position: fixed; bottom: 100px; right: 30px; width: 420px; height: 550px; z-index: 800; transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1); transform-origin: bottom right; }
+.chat-panel.hidden { transform: scale(0.3); opacity: 0; pointer-events: none; }
+
+.chat-container { display: flex; flex-direction: column; overflow: hidden; position: relative; height: 100%; border-radius: var(--radius); }
+.chat-close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); transition: 0.2s; padding: 0 4px; }
+.chat-close-btn:hover { color: var(--text-main); transform: scale(1.2); }
+.chat-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--input-bg); display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius) var(--radius) 0 0; }
 .chat-messages { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: transparent; }
 .message { max-width: 60%; display: flex; flex-direction: column; }
 .message.mine { align-self: flex-end; }
@@ -205,8 +216,9 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
     .app-container { flex-direction: column; height: auto; padding: 0 10px; }
     .calendar-section { min-height: 500px; padding: 1rem; }
     .sidebar-section { min-width: 100%; }
-    .chat-container { min-height: 400px; }
     .day-cell { padding: 0.2rem; min-height: 70px; }
     .event-author { display: none; }
     .emoji-picker { left: -60px; }
+    .chat-panel { width: calc(100% - 20px); right: 10px; bottom: 90px; height: 60vh; }
+    .chat-fab { bottom: 20px; right: 20px; }
 }

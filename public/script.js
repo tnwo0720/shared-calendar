@@ -11,6 +11,8 @@ let typingTimeout = null;
 let myCategory = '';
 let replyToMsg = null;
 let lastChatDate = '';
+let chatOpen = false;
+let unreadCount = 0;
 
 // DOM
 const loginOverlay = document.getElementById('login-overlay');
@@ -148,6 +150,35 @@ replyCancelBtn.addEventListener('click', () => {
     replyPreview.classList.add('hidden');
 });
 
+// 플로팅 채팅 패널 토글
+const chatFab = document.getElementById('chat-fab');
+const chatPanel = document.getElementById('chat-panel');
+const chatCloseBtn = document.getElementById('chat-close');
+const unreadBadge = document.getElementById('unread-badge');
+
+chatFab.addEventListener('click', () => {
+    chatOpen = !chatOpen;
+    chatPanel.classList.toggle('hidden', !chatOpen);
+    if(chatOpen) {
+        unreadCount = 0;
+        unreadBadge.classList.add('hidden');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatInput.focus();
+    }
+});
+chatCloseBtn.addEventListener('click', () => {
+    chatOpen = false;
+    chatPanel.classList.add('hidden');
+});
+
+function updateUnread() {
+    if(!chatOpen) {
+        unreadCount++;
+        unreadBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+        unreadBadge.classList.remove('hidden');
+    }
+}
+
 function showToast(message, color) {
     const toast = document.createElement('div');
     toast.className = 'toast'; toast.style.borderLeftColor = color;
@@ -186,7 +217,10 @@ socket.on('event_added', (e) => {
     showToast(`🔔 <b>${e.username}</b>님이 새 일정 추가: ${e.title}`, e.color);
 });
 
-socket.on('receive_message', appendMessage);
+socket.on('receive_message', (msg) => {
+    appendMessage(msg);
+    updateUnread();
+});
 
 // 타이핑 인디케이터
 const typingIndicator = document.getElementById('typing-indicator');
