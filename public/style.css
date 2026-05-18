@@ -86,11 +86,13 @@ body.dark-mode .dday-banner { background: linear-gradient(135deg, #7b5836, #9c6e
 .weekdays .sunday { color: var(--holiday-color); }
 .weekdays .saturday { color: var(--saturday-color); }
 
-.calendar-grid { flex: 1; display: grid; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(5, 1fr); gap: 8px; }
-.day-cell { border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem; display: flex; flex-direction: column; background: var(--input-bg); overflow-y: auto; transition: 0.2s; }
+.calendar-grid { flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; min-height: 0; }
+.day-cell { border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem; display: flex; flex-direction: column; background: var(--input-bg); overflow-y: auto; transition: 0.2s; min-height: 0; }
+.day-cell::-webkit-scrollbar { width: 4px; }
+.day-cell::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
 .day-cell:hover, .day-cell.drag-over { background: var(--bg-glass-hover); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 .day-cell.drag-over { border: 2px dashed var(--primary); }
-.day-cell.empty { background: transparent; border-color: transparent; }
+.day-cell.empty { background: transparent; border-color: transparent; pointer-events: none; }
 
 .date-header { display: flex; justify-content: space-between; margin-bottom: 0.3rem; align-items: flex-start; }
 .date-number { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 5px;}

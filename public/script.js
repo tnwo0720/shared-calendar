@@ -328,7 +328,7 @@ function initCalendar() {
     // 달의 주 수에 따라 동적으로 5줄 또는 6줄로 변경
     const totalCells = firstDay + daysInMonth;
     const rows = Math.ceil(totalCells / 7);
-    calendarGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    calendarGrid.style.gridTemplateRows = `repeat(${rows}, minmax(0, 1fr))`;
     
     for(let i = 0; i < firstDay; i++) {
         const cell = document.createElement('div'); cell.className = 'day-cell empty'; calendarGrid.appendChild(cell);
