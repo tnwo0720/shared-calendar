@@ -3,6 +3,7 @@ const socket = io();
 // 전역 변수
 let myUsername = '';
 let myColor = '#ff6b6b';
+let myAvatar = '☕';
 let currentDate = new Date(2026, 4, 1);
 let eventsList = [];
 let weatherData = {}; // 날씨 캐시
@@ -12,6 +13,7 @@ let typingTimeout = null;
 const loginOverlay = document.getElementById('login-overlay');
 const usernameInput = document.getElementById('username-input');
 const colorOptions = document.querySelectorAll('.color-option');
+const avatarOptions = document.querySelectorAll('.avatar-option');
 const joinBtn = document.getElementById('join-btn');
 const myColorBadge = document.getElementById('my-color-badge');
 const myUsernameDisplay = document.getElementById('my-username-display');
@@ -42,8 +44,10 @@ themeToggle.addEventListener('click', () => {
 function checkSavedLogin() {
     const savedName = localStorage.getItem('cal_username');
     const savedColor = localStorage.getItem('cal_color');
+    const savedAvatar = localStorage.getItem('cal_avatar');
     if (savedName && savedColor) {
         myUsername = savedName; myColor = savedColor;
+        if(savedAvatar) myAvatar = savedAvatar;
         loginOverlay.classList.add('hidden');
         updateProfileUI(); fetchWeather(); initCalendar();
     } else { loginOverlay.classList.remove('hidden'); }
@@ -57,12 +61,23 @@ colorOptions.forEach(opt => {
     });
 });
 
+avatarOptions.forEach(opt => {
+    opt.addEventListener('click', () => {
+        avatarOptions.forEach(o => { o.classList.remove('selected'); o.style.opacity = '0.5'; o.style.transform = 'scale(1)'; });
+        opt.classList.add('selected');
+        opt.style.opacity = '1';
+        opt.style.transform = 'scale(1.2)';
+        myAvatar = opt.dataset.avatar;
+    });
+});
+
 joinBtn.addEventListener('click', () => {
     const val = usernameInput.value.trim();
     if(val.length > 0) {
         myUsername = val;
         localStorage.setItem('cal_username', myUsername);
         localStorage.setItem('cal_color', myColor);
+        localStorage.setItem('cal_avatar', myAvatar);
         document.querySelector('.login-box h2').textContent = '환영합니다!';
         joinBtn.textContent = '입장하기';
         loginOverlay.classList.add('hidden');
@@ -81,8 +96,9 @@ logoutBtn.addEventListener('click', () => {
 function updateProfileUI() {
     myUsernameDisplay.textContent = myUsername;
     myColorBadge.style.backgroundColor = myColor;
+    document.getElementById('my-avatar-display').textContent = myAvatar;
     eventDateInput.valueAsDate = new Date();
-    socket.emit('user_joined', { username: myUsername, color: myColor });
+    socket.emit('user_joined', { username: myUsername, color: myColor, avatar: myAvatar });
 }
 
 function showToast(message, color) {
@@ -112,7 +128,7 @@ socket.on('update_users', (users) => {
     users.forEach(u => {
         const div = document.createElement('div');
         div.className = 'online-user-badge';
-        div.innerHTML = `<div class="online-user-dot" style="background: ${u.color}"></div><span>${u.username}</span>`;
+        div.innerHTML = `<div class="msg-avatar" style="background: ${u.color}; width:20px; height:20px; font-size:0.7rem;">${u.avatar || '☕'}</div><span>${u.username}</span>`;
         container.appendChild(div);
     });
 });
@@ -183,7 +199,7 @@ chatForm.addEventListener('submit', (e) => {
         };
         reader.readAsDataURL(selectedFile);
     } else {
-        socket.emit('send_message', { username: myUsername, text: text, color: myColor });
+        socket.emit('send_message', { username: myUsername, text: text, color: myColor, avatar: myAvatar });
         resetChatInput();
     }
 });
@@ -201,7 +217,13 @@ function appendMessage(msg) {
     const div = document.createElement('div');
     div.className = `message ${isMine ? 'mine' : 'others'}`;
     
-    let contentHtml = msg.text ? `<div>${msg.text}</div>` : '';
+    // 멘션(@이름) 파싱 적용
+    let parsedText = msg.text || '';
+    if (parsedText) {
+        parsedText = parsedText.replace(/@([가-힣a-zA-Z0-9]+)/g, '<span style="color:var(--primary); font-weight:800; background:rgba(195,154,107,0.2); padding:2px 4px; border-radius:4px;">@$1</span>');
+    }
+    
+    let contentHtml = parsedText ? `<div>${parsedText}</div>` : '';
     
     if (msg.fileData) {
         if (msg.fileType && msg.fileType.startsWith('image/')) {
@@ -212,13 +234,30 @@ function appendMessage(msg) {
     }
 
     div.innerHTML = `
-        <div class="msg-header"><div class="msg-color-dot" style="background:${msg.color}"></div>
+        <div class="msg-header"><div class="msg-avatar" style="background:${msg.color}">${msg.avatar || '☕'}</div>
         <span>${msg.username}</span><span style="font-size:0.7rem; opacity:0.7;">${msg.time}</span></div>
-        <div class="msg-bubble">${contentHtml}</div>
+        <div class="msg-bubble-wrapper">
+            <div class="msg-bubble">${contentHtml}</div>
+            <div class="msg-reactions">
+                <button class="reaction-btn" onclick="sendReaction(${msg.id}, '👍')">👍<span class="reaction-count" id="react-thumb-${msg.id}">${msg.reactions?.['👍'] || ''}</span></button>
+                <button class="reaction-btn" onclick="sendReaction(${msg.id}, '❤️')">❤️<span class="reaction-count" id="react-heart-${msg.id}">${msg.reactions?.['❤️'] || ''}</span></button>
+            </div>
+        </div>
     `;
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+window.sendReaction = function(msgId, emoji) {
+    socket.emit('add_reaction', { msgId, reaction: emoji });
+}
+
+socket.on('update_reaction', (data) => {
+    const thumbSpan = document.getElementById(`react-thumb-${data.msgId}`);
+    const heartSpan = document.getElementById(`react-heart-${data.msgId}`);
+    if(thumbSpan) thumbSpan.textContent = data.reactions['👍'] > 0 ? data.reactions['👍'] : '';
+    if(heartSpan) heartSpan.textContent = data.reactions['❤️'] > 0 ? data.reactions['❤️'] : '';
+});
 
 // 이미지 모달 로직
 const imageModal = document.getElementById('image-modal');
@@ -447,11 +486,11 @@ addEventBtn.addEventListener('click', () => {
             let current = new Date(startDate); const end = new Date(endDate);
             while (current <= end) {
                 const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
-                socket.emit('add_event', { date: dateStr, title: title, username: myUsername, color: myColor, isDday: isDday });
+                socket.emit('add_event', { date: dateStr, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday });
                 current.setDate(current.getDate() + 1);
             }
         } else {
-            socket.emit('add_event', { date: startDate, title: title, username: myUsername, color: myColor, isDday: isDday });
+            socket.emit('add_event', { date: startDate, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday });
         }
         eventTitleInput.value = ''; eventEndDateInput.value = ''; eventIsDdayInput.checked = false;
     }

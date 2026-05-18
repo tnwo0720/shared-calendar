@@ -45,6 +45,8 @@ io.on('connection', (socket) => {
             username: data.username,
             text: data.text,
             color: data.color,
+            avatar: data.avatar || '☕',
+            reactions: { '👍': 0, '❤️': 0 },
             fileData: data.fileData || null,
             fileName: data.fileName || null,
             fileType: data.fileType || null,
@@ -54,6 +56,17 @@ io.on('connection', (socket) => {
         if (chatHistory.length > 50) chatHistory.shift(); // 메모리 관리를 위해 최근 50개 유지
         saveData(); // 채팅 발생 시 저장
         io.emit('receive_message', message);
+    });
+    
+    // 리액션 처리
+    socket.on('add_reaction', (data) => {
+        const msg = chatHistory.find(m => m.id === data.msgId);
+        if(msg) {
+            msg.reactions = msg.reactions || { '👍': 0, '❤️': 0 };
+            msg.reactions[data.reaction] = (msg.reactions[data.reaction] || 0) + 1;
+            saveData();
+            io.emit('update_reaction', { msgId: data.msgId, reactions: msg.reactions });
+        }
     });
     
     // 타이핑 인디케이터
@@ -71,6 +84,7 @@ io.on('connection', (socket) => {
             title: eventData.title,
             username: eventData.username,
             color: eventData.color,
+            avatar: eventData.avatar || '☕',
             isDday: eventData.isDday || false
         };
         events.push(newEvent);

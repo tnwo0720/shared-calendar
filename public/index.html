@@ -39,6 +39,13 @@
             <h2>환영합니다!</h2>
             <p>프로필을 설정해주세요.</p>
             <input type="text" id="username-input" placeholder="이름 (예: 민재)" autocomplete="off" maxlength="10">
+            <div class="avatar-picker" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; font-size: 1.5rem;">
+                <div class="avatar-option selected" data-avatar="☕" style="cursor:pointer; opacity:1; transform:scale(1.2);">☕</div>
+                <div class="avatar-option" data-avatar="🥐" style="cursor:pointer; opacity:0.5;">🥐</div>
+                <div class="avatar-option" data-avatar="🐱" style="cursor:pointer; opacity:0.5;">🐱</div>
+                <div class="avatar-option" data-avatar="🐶" style="cursor:pointer; opacity:0.5;">🐶</div>
+                <div class="avatar-option" data-avatar="🐰" style="cursor:pointer; opacity:0.5;">🐰</div>
+            </div>
             <div class="color-picker">
                 <div class="color-option selected" style="background: #ff6b6b;" data-color="#ff6b6b"></div>
                 <div class="color-option" style="background: #4ecdc4;" data-color="#4ecdc4"></div>
@@ -86,7 +93,7 @@
             <!-- 내 프로필 & 접속자 -->
             <div class="user-info glass-panel">
                 <div class="my-profile-header">
-                    <div id="my-color-badge" class="color-badge"></div>
+                    <div id="my-color-badge" class="color-badge" style="display:flex; justify-content:center; align-items:center; font-size:0.8rem;"><span id="my-avatar-display"></span></div>
                     <span id="my-username-display">로딩중...</span>
                     <button id="logout-btn" class="btn-small">이름 변경</button>
                 </div>
