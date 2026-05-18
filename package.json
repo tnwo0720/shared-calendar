@@ -1,0 +1,13 @@
+{
+  "name": "friends-calendar",
+  "version": "1.0.0",
+  "description": "Real-time shared calendar and chat",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
