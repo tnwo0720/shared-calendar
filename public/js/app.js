@@ -20,7 +20,8 @@ socket.on('init_data', (data) => {
     lastChatDate = '';
     data.chatHistory.forEach(msg => appendMessage(msg));
     if(data.pinnedMessage) showPinned(data.pinnedMessage);
-    if(myUsername) { initCalendar(); updateDdayBanner(); checkDdayAlerts(); }
+    if(data.notes) notesData = data.notes;
+    if(myUsername) { initCalendar(); updateDdayBanner(); checkDdayAlerts(); checkUrlHash(); }
 });
 
 socket.on('sync_events', (events) => {
@@ -78,6 +79,12 @@ function checkDdayAlerts() {
     });
 }
 
+socket.on('note_updated', (data) => {
+    notesData[data.date] = data.text;
+    if(selectedDateStr === data.date) {
+        document.getElementById('date-note').value = data.text;
+    }
+});
+
 // 앱 시작!
 checkSavedLogin();
-

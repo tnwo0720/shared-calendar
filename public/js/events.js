@@ -67,6 +67,9 @@ function updateSelectedDatePanel(dateStr) {
         item.addEventListener('click', () => openEventDetailModal(e));
         container.appendChild(item);
     });
+    // 메모 업데이트
+    const noteArea = document.getElementById('date-note');
+    noteArea.value = notesData[dateStr] || '';
 }
 
 // D-Day 배너
@@ -162,3 +165,69 @@ window.startEditEventWrap = function(e, id) {
     const eventObj = eventsList.find(ev => ev.id === id);
     if(eventObj) startEditEvent(eventObj);
 }
+
+// 공유 메모
+let notesData = {};
+let noteSaveTimeout = null;
+const dateNoteArea = document.getElementById('date-note');
+
+dateNoteArea.addEventListener('input', () => {
+    clearTimeout(noteSaveTimeout);
+    noteSaveTimeout = setTimeout(() => {
+        socket.emit('save_note', { date: selectedDateStr, text: dateNoteArea.value });
+    }, 800);
+});
+
+// 일정 공유 링크
+const shareDateBtn = document.getElementById('share-date-btn');
+shareDateBtn.addEventListener('click', () => {
+    const url = `${window.location.origin}${window.location.pathname}#date=${selectedDateStr}`;
+    navigator.clipboard.writeText(url).then(() => {
+        const toast = document.createElement('div');
+        toast.className = 'share-toast';
+        toast.textContent = '✅ 링크가 복사되었습니다!';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
+    }).catch(() => {
+        prompt('이 링크를 복사하세요:', url);
+    });
+});
+
+// URL 해시로 날짜 이동
+function checkUrlHash() {
+    const hash = window.location.hash;
+    const match = hash.match(/#date=([\d-]+)/);
+    if(match) {
+        const dateStr = match[1];
+        const d = new Date(dateStr + 'T00:00:00');
+        currentDate = new Date(d.getFullYear(), d.getMonth(), 1);
+        setTimeout(() => {
+            initCalendar();
+            updateSelectedDatePanel(dateStr);
+        }, 500);
+    }
+}
+
+// 캘린더 내보내기 (.ics)
+const exportBtn = document.getElementById('export-ics-btn');
+exportBtn.addEventListener('click', () => {
+    let ics = 'BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//SharedCalendar//KO\nCALSCALE:GREGORIAN\n';
+    eventsList.forEach(e => {
+        const dateClean = e.date.replace(/-/g, '');
+        ics += 'BEGIN:VEVENT\n';
+        ics += `DTSTART;VALUE=DATE:${dateClean}\n`;
+        ics += `DTEND;VALUE=DATE:${dateClean}\n`;
+        ics += `SUMMARY:${e.category || ''} ${e.title}\n`;
+        ics += `DESCRIPTION:추가: ${e.username}\n`;
+        ics += `UID:${e.id}@shared-calendar\n`;
+        ics += 'END:VEVENT\n';
+    });
+    ics += 'END:VCALENDAR';
+    
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'shared-calendar.ics';
+    link.click();
+    showToast('📤 캘린더가 내보내기 되었습니다!', '#43aa8b');
+});

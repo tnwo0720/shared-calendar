@@ -22,6 +22,7 @@ if (fs.existsSync(dataFile)) {
         const parsed = JSON.parse(raw);
         events = parsed.events || [];
         chatHistory = parsed.chatHistory || [];
+        if(parsed.notes) notes = parsed.notes;
     } catch(e) { console.log('데이터 읽기 오류:', e); }
 }
 
@@ -32,14 +33,15 @@ function saveData() {
             const { fileData, ...rest } = msg;
             return rest;
         });
-        fs.writeFileSync(dataFile, JSON.stringify({ events, chatHistory: chatToSave }));
+        fs.writeFileSync(dataFile, JSON.stringify({ events, chatHistory: chatToSave, notes }));
     } catch(e) { console.log('데이터 저장 오류:', e); }
 }
 
 let pinnedMessage = null;
+let notes = {};  // { '2026-05-19': 'memo text...' }
 
 io.on('connection', (socket) => {
-    socket.emit('init_data', { events, chatHistory, pinnedMessage });
+    socket.emit('init_data', { events, chatHistory, pinnedMessage, notes });
 
     socket.on('user_joined', (userData) => {
         const isNew = !activeUsers[socket.id];
@@ -104,6 +106,14 @@ io.on('connection', (socket) => {
     socket.on('unpin_message', () => {
         pinnedMessage = null;
         io.emit('message_unpinned');
+    });
+
+    // 공유 메모
+    socket.on('save_note', (data) => {
+        if(data.text.trim()) { notes[data.date] = data.text; }
+        else { delete notes[data.date]; }
+        saveData();
+        io.emit('note_updated', { date: data.date, text: data.text });
     });
 
     // 타이핑 인디케이터

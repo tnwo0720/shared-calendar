@@ -265,6 +265,22 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
 .week-day-header { font-weight: 800; font-size: 0.9rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 .week-day-header .day-name { font-size: 0.7rem; color: var(--text-muted); }
 
+/* Note Section */
+.note-section { padding-top: 8px; border-top: 1px solid var(--border); margin-top: 8px; }
+.note-section textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--input-bg); border-radius: 8px; font-size: 0.8rem; font-family: inherit; color: var(--text-main); resize: vertical; min-height: 50px; outline: none; transition: 0.2s; box-sizing: border-box; }
+.note-section textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(195,154,107,0.15); }
+
+/* Export Button */
+.btn-export { width: 100%; padding: 8px; margin-top: 10px; background: transparent; border: 1px dashed var(--primary); color: var(--primary); border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-export:hover { background: rgba(195,154,107,0.1); }
+
+/* Share Date Header */
+.selected-date-header { display: flex; justify-content: space-between; align-items: center; }
+.selected-date-header .icon-btn { font-size: 0.9rem; padding: 4px 8px; }
+
+/* Share Toast */
+.share-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 24px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 9999; animation: fadeIn 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+
 /* Mobile */
 @media (max-width: 900px) {
     body { height: auto; overflow-y: auto; padding: 1rem 0; }

@@ -155,10 +155,17 @@
             <div class="selected-date-panel glass-panel">
                 <div class="selected-date-header">
                     <h3 id="selected-date-title">📅 오늘의 일정</h3>
+                    <button id="share-date-btn" class="icon-btn" title="이 날짜 링크 복사">🔗</button>
                 </div>
                 <div id="selected-date-events" class="selected-date-events">
                     <p class="no-events">일정이 없습니다</p>
                 </div>
+                <!-- 공유 메모 -->
+                <div class="note-section">
+                    <textarea id="date-note" placeholder="📝 이 날짜에 메모를 남겨보세요..." rows="2"></textarea>
+                </div>
+                <!-- 내보내기 버튼 -->
+                <button id="export-ics-btn" class="btn-export">📤 캘린더 내보내기 (.ics)</button>
             </div>
 
         </aside>
