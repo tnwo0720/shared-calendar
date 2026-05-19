@@ -84,6 +84,15 @@ io.on('connection', (socket) => {
         }
     });
     
+    // 메시지 삭제
+    socket.on('delete_message', (msgId) => {
+        const idx = chatHistory.findIndex(m => m.id === msgId);
+        if(idx !== -1 && chatHistory[idx].username === (activeUsers[socket.id]?.username || '')) {
+            chatHistory.splice(idx, 1);
+            saveData();
+            io.emit('message_deleted', msgId);
+        }
+    });
     // 타이핑 인디케이터
     socket.on('typing', (username) => {
         socket.broadcast.emit('user_typing', username);

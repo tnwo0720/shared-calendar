@@ -72,7 +72,14 @@ function initCalendar() {
             const dragId = e.dataTransfer.getData('text/plain');
             const targetEvent = eventsList.find(ev => ev.id == dragId);
             if(targetEvent && targetEvent.date !== dateStr) {
-                socket.emit('edit_event', { id: targetEvent.id, date: dateStr, title: targetEvent.title, isDday: targetEvent.isDday });
+                if(e.altKey || e.ctrlKey) {
+                    // Alt/Ctrl + 드래그 = 복사
+                    socket.emit('add_event', { date: dateStr, title: targetEvent.title, username: targetEvent.username, color: targetEvent.color, avatar: targetEvent.avatar, isDday: targetEvent.isDday, category: targetEvent.category || '' });
+                    showToast(`📋 일정이 ${dateStr}로 복사되었습니다`, targetEvent.color);
+                } else {
+                    // 일반 드래그 = 이동
+                    socket.emit('edit_event', { id: targetEvent.id, date: dateStr, title: targetEvent.title, isDday: targetEvent.isDday });
+                }
             }
         });
         
@@ -137,3 +144,52 @@ function showDayTooltip(evt, dateStr, day, events, holiday) {
     dayTooltip.classList.add('visible');
 }
 function hideDayTooltip() { dayTooltip.classList.remove('visible'); }
+
+// 일정 검색
+const eventSearchInput = document.getElementById('event-search');
+const searchResults = document.getElementById('search-results');
+let searchDebounce = null;
+
+eventSearchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+        const query = eventSearchInput.value.trim().toLowerCase();
+        if(query.length < 1) { searchResults.classList.add('hidden'); return; }
+        
+        const results = eventsList.filter(e => 
+            e.title.toLowerCase().includes(query) || 
+            e.username.toLowerCase().includes(query) ||
+            e.date.includes(query)
+        ).slice(0, 10);
+        
+        if(results.length === 0) {
+            searchResults.innerHTML = '<div class="search-result-item"><span class="search-result-title">검색 결과가 없습니다</span></div>';
+        } else {
+            searchResults.innerHTML = results.map(e => {
+                const highlighted = e.title.replace(new RegExp(`(${query})`, 'gi'), '<span class="search-highlight">$1</span>');
+                return `<div class="search-result-item" data-date="${e.date}">
+                    <span class="search-result-date">${e.date}</span>
+                    <span class="selected-event-dot" style="background:${e.color}; width:8px; height:8px; border-radius:50%; flex-shrink:0;"></span>
+                    <span class="search-result-title">${e.category || ''} ${highlighted}</span>
+                </div>`;
+            }).join('');
+        }
+        searchResults.classList.remove('hidden');
+    }, 200);
+});
+
+searchResults.addEventListener('click', (e) => {
+    const item = e.target.closest('.search-result-item');
+    if(item && item.dataset.date) {
+        const d = new Date(item.dataset.date + 'T00:00:00');
+        currentDate = new Date(d.getFullYear(), d.getMonth(), 1);
+        initCalendar();
+        updateSelectedDatePanel(item.dataset.date);
+        eventSearchInput.value = '';
+        searchResults.classList.add('hidden');
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if(!e.target.closest('.search-bar')) searchResults.classList.add('hidden');
+});

@@ -161,6 +161,7 @@ function appendMessage(msg) {
     const isMine = msg.username === myUsername;
     const div = document.createElement('div');
     div.className = `message ${isMine ? 'mine' : 'others'}`;
+    div.setAttribute('data-msg-id', msg.id);
     
     let parsedText = msg.text || '';
     if (parsedText) {
@@ -184,7 +185,7 @@ function appendMessage(msg) {
     div.innerHTML = `
         <div class="msg-header"><div class="msg-avatar" style="background:${msg.color}">${msg.avatar || '☕'}</div>
         <span>${msg.username}</span><span style="font-size:0.7rem; opacity:0.7;">${msg.time}</span>
-        <button class="msg-reply-btn" title="답장">↩️</button></div>
+        <button class="msg-reply-btn" title="답장">↩️</button>${isMine ? `<button class="msg-delete-btn" title="삭제">🗑️</button>` : ''}</div>
         <div class="msg-bubble-wrapper">
             <div class="msg-bubble">${contentHtml}</div>
             <div class="msg-reactions">
@@ -194,6 +195,10 @@ function appendMessage(msg) {
         </div>
     `;
     div.querySelector('.msg-reply-btn').addEventListener('click', () => setReply(msg));
+    const delBtn = div.querySelector('.msg-delete-btn');
+    if(delBtn) delBtn.addEventListener('click', () => {
+        if(confirm('이 메시지를 삭제하시겠습니까?')) socket.emit('delete_message', msg.id);
+    });
     chatMessages.appendChild(div);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }

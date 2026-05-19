@@ -47,5 +47,11 @@ socket.on('update_reaction', (data) => {
     if(heartSpan) heartSpan.textContent = data.reactions['❤️'] > 0 ? data.reactions['❤️'] : '';
 });
 
+// 메시지 삭제 수신
+socket.on('message_deleted', (msgId) => {
+    const el = document.querySelector(`[data-msg-id="${msgId}"]`);
+    if(el) { el.style.animation = 'fadeOut 0.3s forwards'; setTimeout(() => el.remove(), 300); }
+});
+
 // 앱 시작!
 checkSavedLogin();

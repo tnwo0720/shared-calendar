@@ -91,12 +91,17 @@ function updateDdayBanner() {
 }
 
 // 일정 추가/수정
+const eventRepeatSelect = document.getElementById('event-repeat');
+const eventRepeatCount = document.getElementById('event-repeat-count');
+
 addEventBtn.addEventListener('click', () => {
     const id = eventIdInput.value;
     const startDate = eventDateInput.value;
     const endDate = eventEndDateInput.value;
     const title = eventTitleInput.value.trim();
     const isDday = eventIsDdayInput.checked;
+    const repeat = eventRepeatSelect.value;
+    const repeatCount = parseInt(eventRepeatCount.value);
     
     if(!startDate) return alert("날짜를 선택해주세요!");
     if(!title) return alert("일정 내용을 입력해주세요!");
@@ -105,7 +110,20 @@ addEventBtn.addEventListener('click', () => {
         socket.emit('edit_event', { id: parseInt(id), date: startDate, title: title, isDday: isDday });
         resetEventForm();
     } else {
-        if (endDate && endDate >= startDate) {
+        // 반복 일정 처리
+        if (repeat !== 'none') {
+            const eventsToAdd = [];
+            let current = new Date(startDate + 'T00:00:00');
+            for(let i = 0; i < repeatCount; i++) {
+                const dateStr = `${current.getFullYear()}-${String(current.getMonth()+1).padStart(2,'0')}-${String(current.getDate()).padStart(2,'0')}`;
+                eventsToAdd.push({ date: dateStr, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday, category: myCategory });
+                if(repeat === 'weekly') current.setDate(current.getDate() + 7);
+                else if(repeat === 'biweekly') current.setDate(current.getDate() + 14);
+                else if(repeat === 'monthly') current.setMonth(current.getMonth() + 1);
+            }
+            socket.emit('add_events_batch', { events: eventsToAdd });
+            showToast(`🔁 ${title} — ${repeatCount}회 반복 일정 추가!`, myColor);
+        } else if (endDate && endDate >= startDate) {
             const eventsToAdd = [];
             let current = new Date(startDate); const end = new Date(endDate);
             while (current <= end) {
@@ -118,6 +136,7 @@ addEventBtn.addEventListener('click', () => {
             socket.emit('add_event', { date: startDate, title: title, username: myUsername, color: myColor, avatar: myAvatar, isDday: isDday, category: myCategory });
         }
         eventTitleInput.value = ''; eventEndDateInput.value = ''; eventIsDdayInput.checked = false;
+        eventRepeatSelect.value = 'none';
     }
 });
 

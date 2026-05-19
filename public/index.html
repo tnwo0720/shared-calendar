@@ -72,6 +72,12 @@
                 </div>
             </header>
             
+            <!-- 일정 검색 -->
+            <div class="search-bar">
+                <input type="text" id="event-search" placeholder="🔍 일정 검색..." autocomplete="off">
+                <div id="search-results" class="search-results hidden"></div>
+            </div>
+            
             <div class="weekdays">
                 <div class="sunday">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="saturday">토</div>
             </div>
@@ -125,6 +131,20 @@
                 <label class="dday-checkbox">
                     <input type="checkbox" id="event-is-dday"> 🎯 중요 D-Day로 고정하기
                 </label>
+                <div class="repeat-selector">
+                    <label style="font-size:0.85rem; font-weight:600;">🔁 반복</label>
+                    <select id="event-repeat">
+                        <option value="none">없음</option>
+                        <option value="weekly">매주</option>
+                        <option value="biweekly">2주마다</option>
+                        <option value="monthly">매월</option>
+                    </select>
+                    <select id="event-repeat-count">
+                        <option value="4">4회</option>
+                        <option value="8">8회</option>
+                        <option value="12">12회</option>
+                    </select>
+                </div>
                 <div class="event-form-actions">
                     <button id="add-event-btn" class="btn">일정 추가</button>
                     <button id="cancel-edit-btn" class="btn-outline hidden">취소</button>

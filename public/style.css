@@ -231,6 +231,27 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
 .selected-event-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
 .no-events { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1rem 0; font-style: italic; margin: 0; }
 
+/* Search Bar */
+.search-bar { position: relative; padding: 0 1.5rem 0.5rem; }
+.search-bar input { width: 100%; padding: 8px 15px; border: 1px solid var(--border); background: var(--input-bg); border-radius: 20px; font-size: 0.85rem; color: var(--text-main); outline: none; transition: 0.2s; box-sizing: border-box; }
+.search-bar input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(195,154,107,0.15); }
+.search-results { position: absolute; top: 100%; left: 1.5rem; right: 1.5rem; background: var(--bg-glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 12px; max-height: 250px; overflow-y: auto; box-shadow: var(--shadow); z-index: 200; }
+.search-result-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; transition: 0.15s; border-bottom: 1px solid var(--border); }
+.search-result-item:last-child { border-bottom: none; }
+.search-result-item:hover { background: rgba(195,154,107,0.1); }
+.search-result-date { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; min-width: 75px; }
+.search-result-title { font-size: 0.85rem; font-weight: 600; }
+.search-highlight { background: rgba(195,154,107,0.3); padding: 1px 3px; border-radius: 3px; }
+
+/* Repeat Selector */
+.repeat-selector { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; }
+.repeat-selector select { padding: 5px 10px; border: 1px solid var(--border); background: var(--input-bg); border-radius: 8px; font-size: 0.8rem; color: var(--text-main); cursor: pointer; }
+
+/* Message Delete Button */
+.msg-delete-btn { background: none; border: none; font-size: 0.7rem; cursor: pointer; color: var(--text-muted); opacity: 0; transition: 0.2s; padding: 2px 4px; }
+.message:hover .msg-delete-btn { opacity: 1; }
+.msg-delete-btn:hover { color: #e11d48; }
+
 /* Mobile */
 @media (max-width: 900px) {
     body { height: auto; overflow-y: auto; padding: 1rem 0; }
