@@ -66,8 +66,8 @@
                 <button id="prev-month" class="icon-btn">&lt;</button>
                 <h2 id="month-display">2026년 5월</h2>
                 <div style="display:flex; gap:10px;">
+                    <button id="view-toggle" class="icon-btn" title="주간/월간 전환">📅</button>
                     <button id="next-month" class="icon-btn">&gt;</button>
-                    <!-- 다크모드 토글 버튼 -->
                     <button id="theme-toggle" class="icon-btn theme-toggle" title="다크 모드 변경">🌙</button>
                 </div>
             </header>
@@ -181,6 +181,13 @@
                 <button id="chat-close" class="chat-close-btn">&times;</button>
             </div>
             <div id="chat-messages" class="chat-messages"></div>
+            
+            <!-- 고정 메시지 -->
+            <div id="pinned-bar" class="pinned-bar hidden">
+                <span>📌</span>
+                <span id="pinned-text" class="pinned-text"></span>
+                <button id="unpin-btn" class="reply-cancel">&times;</button>
+            </div>
             
             <!-- 입력 중 표시기 -->
             <div id="typing-indicator" class="typing-indicator hidden">누군가 입력 중...</div>

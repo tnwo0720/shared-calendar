@@ -1,6 +1,16 @@
 // ========================================
 // app.js — 소켓 이벤트 핸들러 & 앱 초기화
 // ========================================
+const pinnedBar = document.getElementById('pinned-bar');
+const pinnedText = document.getElementById('pinned-text');
+const unpinBtn = document.getElementById('unpin-btn');
+
+unpinBtn.addEventListener('click', () => socket.emit('unpin_message'));
+
+function showPinned(msg) {
+    if(msg) { pinnedText.textContent = `${msg.username}: ${msg.text}`; pinnedBar.classList.remove('hidden'); }
+    else { pinnedBar.classList.add('hidden'); }
+}
 
 // 서버에서 데이터 수신
 socket.on('init_data', (data) => {
@@ -9,7 +19,8 @@ socket.on('init_data', (data) => {
     cm.innerHTML = '';
     lastChatDate = '';
     data.chatHistory.forEach(msg => appendMessage(msg));
-    if(myUsername) { initCalendar(); updateDdayBanner(); }
+    if(data.pinnedMessage) showPinned(data.pinnedMessage);
+    if(myUsername) { initCalendar(); updateDdayBanner(); checkDdayAlerts(); }
 });
 
 socket.on('sync_events', (events) => {
@@ -47,11 +58,26 @@ socket.on('update_reaction', (data) => {
     if(heartSpan) heartSpan.textContent = data.reactions['❤️'] > 0 ? data.reactions['❤️'] : '';
 });
 
-// 메시지 삭제 수신
 socket.on('message_deleted', (msgId) => {
     const el = document.querySelector(`[data-msg-id="${msgId}"]`);
     if(el) { el.style.animation = 'fadeOut 0.3s forwards'; setTimeout(() => el.remove(), 300); }
 });
 
+socket.on('message_pinned', (msg) => showPinned(msg));
+socket.on('message_unpinned', () => showPinned(null));
+
+// D-Day 자동 알림 (접속 시 확인)
+function checkDdayAlerts() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const ddayEvents = eventsList.filter(e => e.isDday);
+    ddayEvents.forEach(e => {
+        const diff = Math.ceil((new Date(e.date) - today) / (1000*60*60*24));
+        if(diff === 0) showToast(`🎯 오늘이 <b>${e.title}</b> D-Day입니다!`, '#e11d48');
+        else if(diff === 1) showToast(`⏰ 내일이 <b>${e.title}</b> D-Day! (D-1)`, '#f97316');
+        else if(diff === 3) showToast(`📢 <b>${e.title}</b>까지 3일 남았습니다! (D-3)`, '#8b5cf6');
+    });
+}
+
 // 앱 시작!
 checkSavedLogin();
+

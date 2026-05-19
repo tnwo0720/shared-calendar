@@ -36,8 +36,10 @@ function saveData() {
     } catch(e) { console.log('데이터 저장 오류:', e); }
 }
 
+let pinnedMessage = null;
+
 io.on('connection', (socket) => {
-    socket.emit('init_data', { events, chatHistory });
+    socket.emit('init_data', { events, chatHistory, pinnedMessage });
 
     socket.on('user_joined', (userData) => {
         const isNew = !activeUsers[socket.id];
@@ -93,6 +95,17 @@ io.on('connection', (socket) => {
             io.emit('message_deleted', msgId);
         }
     });
+
+    // 메시지 고정(핀)
+    socket.on('pin_message', (msg) => {
+        pinnedMessage = msg;
+        io.emit('message_pinned', pinnedMessage);
+    });
+    socket.on('unpin_message', () => {
+        pinnedMessage = null;
+        io.emit('message_unpinned');
+    });
+
     // 타이핑 인디케이터
     socket.on('typing', (username) => {
         socket.broadcast.emit('user_typing', username);

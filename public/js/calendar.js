@@ -1,11 +1,34 @@
 // ========================================
-// calendar.js — 캘린더 렌더링, 날씨, 툴팁
+// calendar.js — 캘린더 렌더링, 날씨, 툴팁, 주간뷰
 // ========================================
 const monthDisplay = document.getElementById('month-display');
 const calendarGrid = document.getElementById('calendar-grid');
+let isWeekView = false;
+let currentWeekStart = new Date();
 
-document.getElementById('prev-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() - 1); initCalendar(); });
-document.getElementById('next-month').addEventListener('click', () => { currentDate.setMonth(currentDate.getMonth() + 1); initCalendar(); });
+const viewToggleBtn = document.getElementById('view-toggle');
+viewToggleBtn.addEventListener('click', () => {
+    isWeekView = !isWeekView;
+    viewToggleBtn.textContent = isWeekView ? '📆' : '📅';
+    viewToggleBtn.title = isWeekView ? '월간 뷰로 전환' : '주간 뷰로 전환';
+    if(isWeekView) {
+        const today = new Date();
+        currentWeekStart = new Date(today);
+        currentWeekStart.setDate(today.getDate() - today.getDay());
+    }
+    initCalendar();
+});
+
+document.getElementById('prev-month').addEventListener('click', () => {
+    if(isWeekView) { currentWeekStart.setDate(currentWeekStart.getDate() - 7); }
+    else { currentDate.setMonth(currentDate.getMonth() - 1); }
+    initCalendar();
+});
+document.getElementById('next-month').addEventListener('click', () => {
+    if(isWeekView) { currentWeekStart.setDate(currentWeekStart.getDate() + 7); }
+    else { currentDate.setMonth(currentDate.getMonth() + 1); }
+    initCalendar();
+});
 
 // 날씨 API (Open-Meteo)
 async function fetchWeather() {
@@ -26,6 +49,8 @@ async function fetchWeather() {
 
 // 캘린더 그리기
 function initCalendar() {
+    if(isWeekView) return initWeekView();
+    calendarGrid.className = 'calendar-grid';
     calendarGrid.innerHTML = '';
     const year = currentDate.getFullYear(); const month = currentDate.getMonth();
     monthDisplay.textContent = `${year}년 ${month + 1}월`;
@@ -124,6 +149,64 @@ function initCalendar() {
     
     const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
     if(!selectedDateStr) updateSelectedDatePanel(todayStr);
+}
+
+// 주간뷰 렌더링
+function initWeekView() {
+    calendarGrid.innerHTML = '';
+    calendarGrid.className = 'week-view';
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const today = new Date(); today.setHours(0,0,0,0);
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    
+    monthDisplay.textContent = `${currentWeekStart.getMonth()+1}/${currentWeekStart.getDate()} ~ ${weekEnd.getMonth()+1}/${weekEnd.getDate()} (주간)`;
+    
+    for(let i = 0; i < 7; i++) {
+        const d = new Date(currentWeekStart);
+        d.setDate(d.getDate() + i);
+        const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        const isToday = d.getTime() === today.getTime();
+        const holidayName = koreanHolidays[dateStr];
+        
+        const cell = document.createElement('div');
+        cell.className = `week-day-cell${isToday ? ' today-cell' : ''}`;
+        
+        let headerClass = i === 0 ? 'sunday' : (i === 6 ? 'saturday' : '');
+        cell.innerHTML = `<div class="week-day-header">
+            <span class="${headerClass}">${d.getDate()}</span>
+            <span class="day-name">${dayNames[i]}</span>
+        </div>${holidayName ? `<div class="holiday-name" style="font-size:0.7rem; margin-bottom:4px;">${holidayName}</div>` : ''}`;
+        
+        // 날씨
+        if(weatherData[dateStr]) {
+            const wDiv = document.createElement('div');
+            wDiv.style.fontSize = '0.75rem'; wDiv.style.marginBottom = '6px';
+            wDiv.textContent = `${weatherData[dateStr].emoji} ${weatherData[dateStr].max}°`;
+            cell.appendChild(wDiv);
+        }
+        
+        // 일정
+        const dayEvents = eventsList.filter(e => e.date === dateStr);
+        dayEvents.forEach(e => {
+            const evDiv = document.createElement('div');
+            evDiv.className = 'event-item';
+            evDiv.style.backgroundColor = e.color;
+            if(e.isDday) evDiv.style.border = '2px solid white';
+            evDiv.innerHTML = `<div class="event-info"><span class="event-title-text">${e.category || ''} ${e.title}</span></div>`;
+            evDiv.addEventListener('click', () => openEventDetailModal(e));
+            cell.appendChild(evDiv);
+        });
+        
+        cell.addEventListener('click', (e) => {
+            if(!e.target.closest('.event-item')) {
+                document.getElementById('event-date').value = dateStr;
+                updateSelectedDatePanel(dateStr);
+            }
+        });
+        
+        calendarGrid.appendChild(cell);
+    }
 }
 
 // 툴팁
