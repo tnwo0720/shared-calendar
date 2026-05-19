@@ -162,10 +162,18 @@
                 </div>
                 <!-- 공유 메모 -->
                 <div class="note-section">
-                    <textarea id="date-note" placeholder="📝 이 날짜에 메모를 남겨보세요..." rows="2"></textarea>
+                    <div class="note-header">
+                        <span class="note-label">📝 공유 메모</span>
+                        <span id="note-save-status" class="note-save-status"></span>
+                    </div>
+                    <textarea id="date-note" placeholder="이 날짜에 대한 메모를 작성하면 모든 멤버가 볼 수 있어요!" rows="2"></textarea>
                 </div>
-                <!-- 내보내기 버튼 -->
-                <button id="export-ics-btn" class="btn-export">📤 캘린더 내보내기 (.ics)</button>
+                <!-- 내보내기 버튼들 -->
+                <div class="export-buttons">
+                    <button id="export-ics-btn" class="btn-export">📅 ICS</button>
+                    <button id="export-csv-btn" class="btn-export">📊 엑셀</button>
+                    <button id="export-pdf-btn" class="btn-export">🖨️ PDF</button>
+                </div>
             </div>
 
         </aside>

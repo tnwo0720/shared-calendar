@@ -171,10 +171,16 @@ let notesData = {};
 let noteSaveTimeout = null;
 const dateNoteArea = document.getElementById('date-note');
 
+const noteSaveStatus = document.getElementById('note-save-status');
+
 dateNoteArea.addEventListener('input', () => {
     clearTimeout(noteSaveTimeout);
+    noteSaveStatus.textContent = '입력 중...';
+    noteSaveStatus.classList.add('visible');
     noteSaveTimeout = setTimeout(() => {
         socket.emit('save_note', { date: selectedDateStr, text: dateNoteArea.value });
+        noteSaveStatus.textContent = '✅ 저장됨';
+        setTimeout(() => noteSaveStatus.classList.remove('visible'), 2000);
     }, 800);
 });
 
@@ -229,5 +235,56 @@ exportBtn.addEventListener('click', () => {
     link.href = URL.createObjectURL(blob);
     link.download = 'shared-calendar.ics';
     link.click();
-    showToast('📤 캘린더가 내보내기 되었습니다!', '#43aa8b');
+    showToast('📅 ICS 파일이 다운로드되었습니다!', '#43aa8b');
+});
+
+// 캘린더 내보내기 (엑셀 CSV)
+const exportCsvBtn = document.getElementById('export-csv-btn');
+exportCsvBtn.addEventListener('click', () => {
+    const BOM = '\uFEFF';
+    let csv = BOM + '날짜,일정,카테고리,작성자,D-Day\n';
+    const sorted = [...eventsList].sort((a,b) => a.date.localeCompare(b.date));
+    sorted.forEach(e => {
+        csv += `${e.date},"${e.title}","${e.category || '없음'}","${e.username}",${e.isDday ? 'O' : ''}\n`;
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'shared-calendar.csv';
+    link.click();
+    showToast('📊 엑셀 파일이 다운로드되었습니다!', '#43aa8b');
+});
+
+// 캘린더 내보내기 (PDF - 인쇄 화면)
+const exportPdfBtn = document.getElementById('export-pdf-btn');
+exportPdfBtn.addEventListener('click', () => {
+    const sorted = [...eventsList].sort((a,b) => a.date.localeCompare(b.date));
+    const printWin = window.open('', '_blank');
+    let rows = sorted.map(e => 
+        `<tr><td>${e.date}</td><td>${e.category || ''}</td><td>${e.title}</td><td>${e.username}</td><td>${e.isDday ? '🎯' : ''}</td></tr>`
+    ).join('');
+    
+    printWin.document.write(`
+    <html><head><title>공유 캘린더</title>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; padding: 30px; color: #333; }
+        h1 { text-align: center; margin-bottom: 5px; }
+        p.sub { text-align: center; color: #888; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #c39a6b; color: white; padding: 10px; text-align: left; }
+        td { padding: 8px 10px; border-bottom: 1px solid #eee; }
+        tr:nth-child(even) { background: #f9f6f1; }
+        @media print { body { padding: 10px; } }
+    </style></head><body>
+    <h1>📅 공유 캘린더</h1>
+    <p class="sub">총 ${sorted.length}개 일정 | 인쇄일: ${new Date().toLocaleDateString('ko-KR')}</p>
+    <table>
+        <thead><tr><th>날짜</th><th>카테고리</th><th>일정</th><th>작성자</th><th>D-Day</th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table>
+    </body></html>`);
+    printWin.document.close();
+    setTimeout(() => { printWin.print(); }, 300);
+    showToast('🖨️ PDF 인쇄 화면이 열렸습니다!', '#43aa8b');
 });

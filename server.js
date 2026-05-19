@@ -13,7 +13,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 const dataFile = path.join(__dirname, 'data.json');
 let events = [];
 let chatHistory = [];
-let activeUsers = {}; 
+let activeUsers = {};
+let notes = {};
 
 // 서버 켜질 때 기존 저장된 데이터 불러오기
 if (fs.existsSync(dataFile)) {
@@ -38,7 +39,6 @@ function saveData() {
 }
 
 let pinnedMessage = null;
-let notes = {};  // { '2026-05-19': 'memo text...' }
 
 io.on('connection', (socket) => {
     socket.emit('init_data', { events, chatHistory, pinnedMessage, notes });

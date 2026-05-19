@@ -267,12 +267,17 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
 
 /* Note Section */
 .note-section { padding-top: 8px; border-top: 1px solid var(--border); margin-top: 8px; }
+.note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.note-label { font-size: 0.8rem; font-weight: 700; color: var(--text-main); }
+.note-save-status { font-size: 0.7rem; color: var(--primary); font-weight: 600; opacity: 0; transition: opacity 0.3s; }
+.note-save-status.visible { opacity: 1; }
 .note-section textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--input-bg); border-radius: 8px; font-size: 0.8rem; font-family: inherit; color: var(--text-main); resize: vertical; min-height: 50px; outline: none; transition: 0.2s; box-sizing: border-box; }
 .note-section textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(195,154,107,0.15); }
 
-/* Export Button */
-.btn-export { width: 100%; padding: 8px; margin-top: 10px; background: transparent; border: 1px dashed var(--primary); color: var(--primary); border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.btn-export:hover { background: rgba(195,154,107,0.1); }
+/* Export Buttons */
+.export-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+.btn-export { padding: 7px 4px; background: transparent; border: 1px dashed var(--border); color: var(--text-main); border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.btn-export:hover { background: rgba(195,154,107,0.1); border-color: var(--primary); color: var(--primary); }
 
 /* Share Date Header */
 .selected-date-header { display: flex; justify-content: space-between; align-items: center; }
