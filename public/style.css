@@ -266,13 +266,13 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
 .week-day-header .day-name { font-size: 0.7rem; color: var(--text-muted); }
 
 /* Upcoming Events Panel */
-.upcoming-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.upcoming-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.upcoming-header h3 { margin: 0; font-size: 1rem; font-weight: 800; }
-.upcoming-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.upcoming-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 1rem 1.2rem 1rem; }
+.upcoming-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.upcoming-header h3 { margin: 0; font-size: 0.95rem; font-weight: 800; }
+.upcoming-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 2px; }
 .upcoming-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--input-bg); transition: 0.2s; cursor: pointer; }
 .upcoming-item:hover { background: var(--bg-glass-hover); transform: translateX(3px); }
-.upcoming-dday-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; color: white; min-width: 36px; text-align: center; flex-shrink: 0; }
+.upcoming-dday-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; color: white; min-width: 40px; text-align: center; flex-shrink: 0; }
 .upcoming-dday-today { background: linear-gradient(135deg, #e11d48, #f43f5e); }
 .upcoming-dday-soon { background: linear-gradient(135deg, #f97316, #fb923c); }
 .upcoming-dday-normal { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
@@ -281,11 +281,6 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
 .upcoming-title { font-weight: 700; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .upcoming-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
 .upcoming-date-divider { font-size: 0.7rem; font-weight: 700; color: var(--primary); padding: 6px 0 2px; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
-
-/* Export Buttons (in header) */
-.export-buttons { display: flex; gap: 4px; }
-.btn-export { padding: 4px 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
-.btn-export:hover { background: rgba(195,154,107,0.1); border-color: var(--primary); color: var(--primary); }
 
 /* Mobile */
 @media (max-width: 900px) {
