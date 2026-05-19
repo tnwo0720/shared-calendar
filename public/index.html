@@ -131,8 +131,21 @@
                 </div>
             </div>
 
+            <!-- 선택 날짜 일정 보기 -->
+            <div class="selected-date-panel glass-panel">
+                <div class="selected-date-header">
+                    <h3 id="selected-date-title">📅 오늘의 일정</h3>
+                </div>
+                <div id="selected-date-events" class="selected-date-events">
+                    <p class="no-events">일정이 없습니다</p>
+                </div>
+            </div>
+
         </aside>
     </div>
+
+    <!-- 날짜 툴팁 -->
+    <div id="day-tooltip" class="day-tooltip"></div>
 
     <!-- 플로팅 채팅 버튼 -->
     <button id="chat-fab" class="chat-fab">

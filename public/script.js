@@ -13,6 +13,7 @@ let replyToMsg = null;
 let lastChatDate = '';
 let chatOpen = false;
 let unreadCount = 0;
+let selectedDateStr = '';
 
 // DOM
 const loginOverlay = document.getElementById('login-overlay');
@@ -199,7 +200,7 @@ socket.on('init_data', (data) => {
 
 socket.on('sync_events', (events) => {
     eventsList = events;
-    if(myUsername) { initCalendar(); updateDdayBanner(); }
+    if(myUsername) { initCalendar(); updateDdayBanner(); if(selectedDateStr) updateSelectedDatePanel(selectedDateStr); }
 });
 
 socket.on('update_users', (users) => {
@@ -597,11 +598,15 @@ function initCalendar() {
             cell.appendChild(evDiv);
         });
         
+        // 툴팁: 마우스 호버 시 일정 미리보기
+        cell.addEventListener('mouseenter', (evt) => showDayTooltip(evt, dateStr, i, dayEvents, holidayName));
+        cell.addEventListener('mouseleave', hideDayTooltip);
+        
         cell.addEventListener('click', (e) => {
             if(!e.target.closest('.event-item')) {
                 eventDateInput.value = dateStr;
                 eventEndDateInput.value = '';
-                // 모바일에서 일정 입력 폼으로 자동 스크롤
+                updateSelectedDatePanel(dateStr);
                 if(window.innerWidth <= 900) {
                     document.querySelector('.add-event-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
@@ -610,6 +615,61 @@ function initCalendar() {
         
         calendarGrid.appendChild(cell);
     }
+    
+    // 초기 로드 시 오늘 날짜 패널 표시
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    if(!selectedDateStr) updateSelectedDatePanel(todayStr);
+}
+
+// 툴팁 로직
+const dayTooltip = document.getElementById('day-tooltip');
+function showDayTooltip(evt, dateStr, day, events, holiday) {
+    let html = `<div class="tooltip-date">${dateStr.replace(/-/g, '.')}${holiday ? ' 🎉' + holiday : ''}</div>`;
+    if(events.length > 0) {
+        events.forEach(e => {
+            html += `<div class="tooltip-event"><span class="tooltip-dot" style="background:${e.color}"></span>${e.category || ''} ${e.title}</div>`;
+        });
+    } else {
+        html += `<div class="tooltip-empty">일정이 없습니다</div>`;
+    }
+    dayTooltip.innerHTML = html;
+    const rect = evt.currentTarget.getBoundingClientRect();
+    dayTooltip.style.left = Math.min(rect.right + 10, window.innerWidth - 270) + 'px';
+    dayTooltip.style.top = rect.top + 'px';
+    dayTooltip.classList.add('visible');
+}
+function hideDayTooltip() {
+    dayTooltip.classList.remove('visible');
+}
+
+// 선택 날짜 일정 패널
+function updateSelectedDatePanel(dateStr) {
+    selectedDateStr = dateStr;
+    const title = document.getElementById('selected-date-title');
+    const container = document.getElementById('selected-date-events');
+    const d = new Date(dateStr + 'T00:00:00');
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    title.textContent = `📅 ${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
+    
+    const events = eventsList.filter(e => e.date === dateStr);
+    if(events.length === 0) {
+        container.innerHTML = '<p class="no-events">일정이 없습니다</p>';
+        return;
+    }
+    container.innerHTML = '';
+    events.forEach(e => {
+        const item = document.createElement('div');
+        item.className = 'selected-event-item';
+        item.innerHTML = `
+            <div class="selected-event-dot" style="background:${e.color}"></div>
+            <div class="selected-event-info">
+                <div class="selected-event-title">${e.category || ''} ${e.isDday ? '🎯' : ''} ${e.title}</div>
+                <div class="selected-event-meta">${e.username}</div>
+            </div>
+        `;
+        item.addEventListener('click', () => openEventDetailModal(e));
+        container.appendChild(item);
+    });
 }
 
 // D-Day 배너 업데이트 로직

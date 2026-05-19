@@ -210,6 +210,27 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
 .emoji-picker span { font-size: 1.3rem; cursor: pointer; text-align: center; padding: 4px; border-radius: 6px; transition: 0.15s; }
 .emoji-picker span:hover { background: rgba(128,128,128,0.2); transform: scale(1.2); }
 
+/* Day Tooltip */
+.day-tooltip { position: fixed; z-index: 1500; background: var(--bg-glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; box-shadow: 0 8px 30px rgba(0,0,0,0.3); pointer-events: none; opacity: 0; transition: opacity 0.2s; max-width: 250px; font-size: 0.8rem; color: var(--text-main); }
+.day-tooltip.visible { opacity: 1; }
+.day-tooltip .tooltip-date { font-weight: 800; margin-bottom: 6px; font-size: 0.85rem; }
+.day-tooltip .tooltip-event { display: flex; align-items: center; gap: 6px; padding: 3px 0; }
+.day-tooltip .tooltip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.day-tooltip .tooltip-empty { color: var(--text-muted); font-style: italic; }
+
+/* Selected Date Panel */
+.selected-date-panel { padding: 1rem 1.5rem; }
+.selected-date-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+.selected-date-header h3 { font-size: 1rem; margin: 0; }
+.selected-date-events { display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto; }
+.selected-event-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; background: var(--input-bg); transition: 0.2s; cursor: pointer; }
+.selected-event-item:hover { background: var(--bg-glass-hover); transform: translateX(3px); }
+.selected-event-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.selected-event-info { flex: 1; overflow: hidden; }
+.selected-event-title { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.selected-event-meta { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+.no-events { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 1rem 0; font-style: italic; margin: 0; }
+
 /* Mobile */
 @media (max-width: 900px) {
     body { height: auto; overflow-y: auto; padding: 1rem 0; }
