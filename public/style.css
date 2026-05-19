@@ -265,26 +265,27 @@ body.dark-mode .chat-file-link { background: rgba(255,255,255,0.1); }
 .week-day-header { font-weight: 800; font-size: 0.9rem; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 .week-day-header .day-name { font-size: 0.7rem; color: var(--text-muted); }
 
-/* Note Section */
-.note-section { padding-top: 8px; border-top: 1px solid var(--border); margin-top: 8px; }
-.note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.note-label { font-size: 0.8rem; font-weight: 700; color: var(--text-main); }
-.note-save-status { font-size: 0.7rem; color: var(--primary); font-weight: 600; opacity: 0; transition: opacity 0.3s; }
-.note-save-status.visible { opacity: 1; }
-.note-section textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); background: var(--input-bg); border-radius: 8px; font-size: 0.8rem; font-family: inherit; color: var(--text-main); resize: vertical; min-height: 50px; outline: none; transition: 0.2s; box-sizing: border-box; }
-.note-section textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(195,154,107,0.15); }
+/* Upcoming Events Panel */
+.upcoming-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.upcoming-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.upcoming-header h3 { margin: 0; font-size: 1rem; font-weight: 800; }
+.upcoming-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.upcoming-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: var(--input-bg); transition: 0.2s; cursor: pointer; }
+.upcoming-item:hover { background: var(--bg-glass-hover); transform: translateX(3px); }
+.upcoming-dday-badge { font-size: 0.65rem; font-weight: 800; padding: 2px 7px; border-radius: 10px; color: white; min-width: 36px; text-align: center; flex-shrink: 0; }
+.upcoming-dday-today { background: linear-gradient(135deg, #e11d48, #f43f5e); }
+.upcoming-dday-soon { background: linear-gradient(135deg, #f97316, #fb923c); }
+.upcoming-dday-normal { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+.upcoming-dday-far { background: var(--text-muted); }
+.upcoming-info { flex: 1; overflow: hidden; }
+.upcoming-title { font-weight: 700; font-size: 0.82rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.upcoming-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+.upcoming-date-divider { font-size: 0.7rem; font-weight: 700; color: var(--primary); padding: 6px 0 2px; border-bottom: 1px solid var(--border); margin-bottom: 2px; }
 
-/* Export Buttons */
-.export-buttons { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
-.btn-export { padding: 7px 4px; background: transparent; border: 1px dashed var(--border); color: var(--text-main); border-radius: 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+/* Export Buttons (in header) */
+.export-buttons { display: flex; gap: 4px; }
+.btn-export { padding: 4px 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted); border-radius: 6px; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
 .btn-export:hover { background: rgba(195,154,107,0.1); border-color: var(--primary); color: var(--primary); }
-
-/* Share Date Header */
-.selected-date-header { display: flex; justify-content: space-between; align-items: center; }
-.selected-date-header .icon-btn { font-size: 0.9rem; padding: 4px 8px; }
-
-/* Share Toast */
-.share-toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 24px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; z-index: 9999; animation: fadeIn 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
 
 /* Mobile */
 @media (max-width: 900px) {

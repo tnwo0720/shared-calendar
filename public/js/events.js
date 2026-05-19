@@ -39,37 +39,64 @@ function openEventDetailModal(e) {
 closeEventDetail.addEventListener('click', () => eventDetailModal.classList.add('hidden'));
 eventDetailModal.addEventListener('click', (e) => { if(e.target === eventDetailModal) eventDetailModal.classList.add('hidden'); });
 
-// 선택 날짜 일정 패널
+// 다가오는 일정 목록
 function updateSelectedDatePanel(dateStr) {
     selectedDateStr = dateStr;
-    const title = document.getElementById('selected-date-title');
-    const container = document.getElementById('selected-date-events');
-    const d = new Date(dateStr + 'T00:00:00');
+    updateUpcomingEvents();
+}
+
+function updateUpcomingEvents() {
+    const container = document.getElementById('upcoming-list');
+    const today = new Date(); today.setHours(0,0,0,0);
     const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-    title.textContent = `📅 ${d.getMonth()+1}월 ${d.getDate()}일 (${dayNames[d.getDay()]})`;
     
-    const events = eventsList.filter(e => e.date === dateStr);
-    if(events.length === 0) {
-        container.innerHTML = '<p class="no-events">일정이 없습니다</p>';
+    const upcoming = eventsList
+        .filter(e => new Date(e.date + 'T00:00:00') >= today)
+        .sort((a,b) => a.date.localeCompare(b.date))
+        .slice(0, 20);
+    
+    if(upcoming.length === 0) {
+        container.innerHTML = '<p class="no-events">다가오는 일정이 없습니다</p>';
         return;
     }
+    
     container.innerHTML = '';
-    events.forEach(e => {
+    let lastDate = '';
+    
+    upcoming.forEach(e => {
+        const eDate = new Date(e.date + 'T00:00:00');
+        const diff = Math.ceil((eDate - today) / (1000*60*60*24));
+        
+        // 날짜 구분선
+        if(e.date !== lastDate) {
+            const divider = document.createElement('div');
+            divider.className = 'upcoming-date-divider';
+            const d = new Date(e.date + 'T00:00:00');
+            divider.textContent = `${d.getMonth()+1}/${d.getDate()} (${dayNames[d.getDay()]})`;
+            container.appendChild(divider);
+            lastDate = e.date;
+        }
+        
+        // D-Day 배지 색상
+        let badgeClass = 'upcoming-dday-far';
+        if(diff === 0) badgeClass = 'upcoming-dday-today';
+        else if(diff <= 3) badgeClass = 'upcoming-dday-soon';
+        else if(diff <= 7) badgeClass = 'upcoming-dday-normal';
+        
+        const badgeText = diff === 0 ? 'TODAY' : `D-${diff}`;
+        
         const item = document.createElement('div');
-        item.className = 'selected-event-item';
+        item.className = 'upcoming-item';
         item.innerHTML = `
-            <div class="selected-event-dot" style="background:${e.color}"></div>
-            <div class="selected-event-info">
-                <div class="selected-event-title">${e.category || ''} ${e.isDday ? '🎯' : ''} ${e.title}</div>
-                <div class="selected-event-meta">${e.username}</div>
+            <span class="upcoming-dday-badge ${badgeClass}">${badgeText}</span>
+            <div class="upcoming-info">
+                <div class="upcoming-title">${e.category || ''} ${e.isDday ? '🎯' : ''} ${e.title}</div>
+                <div class="upcoming-meta">${e.username}</div>
             </div>
         `;
         item.addEventListener('click', () => openEventDetailModal(e));
         container.appendChild(item);
     });
-    // 메모 업데이트
-    const noteArea = document.getElementById('date-note');
-    noteArea.value = notesData[dateStr] || '';
 }
 
 // D-Day 배너
@@ -113,7 +140,6 @@ addEventBtn.addEventListener('click', () => {
         socket.emit('edit_event', { id: parseInt(id), date: startDate, title: title, isDday: isDday });
         resetEventForm();
     } else {
-        // 반복 일정 처리
         if (repeat !== 'none') {
             const eventsToAdd = [];
             let current = new Date(startDate + 'T00:00:00');
@@ -166,40 +192,6 @@ window.startEditEventWrap = function(e, id) {
     if(eventObj) startEditEvent(eventObj);
 }
 
-// 공유 메모
-let notesData = {};
-let noteSaveTimeout = null;
-const dateNoteArea = document.getElementById('date-note');
-
-const noteSaveStatus = document.getElementById('note-save-status');
-
-dateNoteArea.addEventListener('input', () => {
-    clearTimeout(noteSaveTimeout);
-    noteSaveStatus.textContent = '입력 중...';
-    noteSaveStatus.classList.add('visible');
-    noteSaveTimeout = setTimeout(() => {
-        socket.emit('save_note', { date: selectedDateStr, text: dateNoteArea.value });
-        noteSaveStatus.textContent = '✅ 저장됨';
-        setTimeout(() => noteSaveStatus.classList.remove('visible'), 2000);
-    }, 800);
-});
-
-// 일정 공유 링크
-const shareDateBtn = document.getElementById('share-date-btn');
-shareDateBtn.addEventListener('click', () => {
-    const url = `${window.location.origin}${window.location.pathname}#date=${selectedDateStr}`;
-    navigator.clipboard.writeText(url).then(() => {
-        const toast = document.createElement('div');
-        toast.className = 'share-toast';
-        toast.textContent = '✅ 링크가 복사되었습니다!';
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-    }).catch(() => {
-        prompt('이 링크를 복사하세요:', url);
-    });
-});
-
-// URL 해시로 날짜 이동
 function checkUrlHash() {
     const hash = window.location.hash;
     const match = hash.match(/#date=([\d-]+)/);
@@ -207,10 +199,7 @@ function checkUrlHash() {
         const dateStr = match[1];
         const d = new Date(dateStr + 'T00:00:00');
         currentDate = new Date(d.getFullYear(), d.getMonth(), 1);
-        setTimeout(() => {
-            initCalendar();
-            updateSelectedDatePanel(dateStr);
-        }, 500);
+        setTimeout(() => { initCalendar(); }, 500);
     }
 }
 

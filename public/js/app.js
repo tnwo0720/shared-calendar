@@ -20,13 +20,12 @@ socket.on('init_data', (data) => {
     lastChatDate = '';
     data.chatHistory.forEach(msg => appendMessage(msg));
     if(data.pinnedMessage) showPinned(data.pinnedMessage);
-    if(data.notes) notesData = data.notes;
-    if(myUsername) { initCalendar(); updateDdayBanner(); checkDdayAlerts(); checkUrlHash(); }
+    if(myUsername) { initCalendar(); updateDdayBanner(); updateUpcomingEvents(); checkDdayAlerts(); checkUrlHash(); }
 });
 
 socket.on('sync_events', (events) => {
     eventsList = events;
-    if(myUsername) { initCalendar(); updateDdayBanner(); if(selectedDateStr) updateSelectedDatePanel(selectedDateStr); }
+    if(myUsername) { initCalendar(); updateDdayBanner(); updateUpcomingEvents(); }
 });
 
 socket.on('update_users', (users) => {
@@ -78,13 +77,6 @@ function checkDdayAlerts() {
         else if(diff === 3) showToast(`📢 <b>${e.title}</b>까지 3일 남았습니다! (D-3)`, '#8b5cf6');
     });
 }
-
-socket.on('note_updated', (data) => {
-    notesData[data.date] = data.text;
-    if(selectedDateStr === data.date) {
-        document.getElementById('date-note').value = data.text;
-    }
-});
 
 // 앱 시작!
 checkSavedLogin();

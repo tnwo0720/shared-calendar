@@ -151,28 +151,18 @@
                 </div>
             </div>
 
-            <!-- 선택 날짜 일정 보기 -->
-            <div class="selected-date-panel glass-panel">
-                <div class="selected-date-header">
-                    <h3 id="selected-date-title">📅 오늘의 일정</h3>
-                    <button id="share-date-btn" class="icon-btn" title="이 날짜 링크 복사">🔗</button>
-                </div>
-                <div id="selected-date-events" class="selected-date-events">
-                    <p class="no-events">일정이 없습니다</p>
-                </div>
-                <!-- 공유 메모 -->
-                <div class="note-section">
-                    <div class="note-header">
-                        <span class="note-label">📝 공유 메모</span>
-                        <span id="note-save-status" class="note-save-status"></span>
+            <!-- 다가오는 일정 목록 -->
+            <div class="upcoming-panel glass-panel">
+                <div class="upcoming-header">
+                    <h3>📋 다가오는 일정</h3>
+                    <div class="export-buttons">
+                        <button id="export-ics-btn" class="btn-export" title="ICS 내보내기">📅</button>
+                        <button id="export-csv-btn" class="btn-export" title="엑셀 내보내기">📊</button>
+                        <button id="export-pdf-btn" class="btn-export" title="PDF 인쇄">🖨️</button>
                     </div>
-                    <textarea id="date-note" placeholder="이 날짜에 대한 메모를 작성하면 모든 멤버가 볼 수 있어요!" rows="2"></textarea>
                 </div>
-                <!-- 내보내기 버튼들 -->
-                <div class="export-buttons">
-                    <button id="export-ics-btn" class="btn-export">📅 ICS</button>
-                    <button id="export-csv-btn" class="btn-export">📊 엑셀</button>
-                    <button id="export-pdf-btn" class="btn-export">🖨️ PDF</button>
+                <div id="upcoming-list" class="upcoming-list">
+                    <p class="no-events">일정이 없습니다</p>
                 </div>
             </div>
 
