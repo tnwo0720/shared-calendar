@@ -30,6 +30,7 @@ function checkSavedLogin() {
         if(savedAvatar) myAvatar = savedAvatar;
         loginOverlay.classList.add('hidden');
         updateProfileUI(); fetchWeather(); initCalendar();
+        setTimeout(setupPushNotifications, 2000);
     } else { loginOverlay.classList.remove('hidden'); }
 }
 
@@ -68,6 +69,7 @@ joinBtn.addEventListener('click', () => {
         joinBtn.textContent = '입장하기';
         loginOverlay.classList.add('hidden');
         updateProfileUI(); fetchWeather(); initCalendar();
+        setTimeout(setupPushNotifications, 2000);
     } else { alert("이름을 입력해주세요!"); }
 });
 

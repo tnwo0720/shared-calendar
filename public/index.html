@@ -7,6 +7,12 @@
     <meta name="description" content="친구들과 실시간으로 일정을 공유하고 채팅하는 프리미엄 캘린더 앱">
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#8b7355">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="공유 캘린더">
+    <link rel="apple-touch-icon" href="/icon-192.png">
 </head>
 <body class="light-mode">
     <div class="bg-image"></div>
@@ -223,5 +229,12 @@
     <script src="js/calendar.js"></script>
     <script src="js/events.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => console.log('SW 등록:', reg.scope))
+                .catch(err => console.warn('SW 등록 실패:', err));
+        }
+    </script>
 </body>
 </html>
