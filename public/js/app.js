@@ -21,6 +21,9 @@ socket.on('init_data', (data) => {
     data.chatHistory.forEach(msg => appendMessage(msg));
     if(data.pinnedMessage) showPinned(data.pinnedMessage);
     if(myUsername) { initCalendar(); updateDdayBanner(); updateUpcomingEvents(); checkDdayAlerts(); checkUrlHash(); }
+    // 추억앨범 & 우리의 지도 초기 데이터
+    if(data.photos) renderAlbum(data.photos);
+    if(data.mapPins) { window._mapPins = data.mapPins; renderMapPins(data.mapPins); }
 });
 
 socket.on('sync_events', (events) => {

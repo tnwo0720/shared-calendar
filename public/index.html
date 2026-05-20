@@ -6,6 +6,7 @@
     <title>프리미엄 캘린더 & 채팅</title>
     <meta name="description" content="친구들과 실시간으로 일정을 공유하고 채팅하는 프리미엄 캘린더 앱">
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#8b7355">
@@ -234,13 +235,116 @@
         </div>
     </div>
 
+    <!-- ========== 추억앨범 페이지 ========== -->
+    <div id="page-album" class="page-section hidden">
+        <div class="page-inner">
+            <div class="page-header glass-panel">
+                <h2>📸 추억앨범</h2>
+                <label for="album-file-input" class="btn" style="width:auto;padding:0.55rem 1.2rem;cursor:pointer;">+ 사진 추가</label>
+                <input type="file" id="album-file-input" accept="image/*" class="hidden">
+            </div>
+            <!-- 업로드 폼 (사진 선택 후 표시) -->
+            <div id="album-upload-form" class="album-upload-form glass-panel hidden">
+                <img id="album-preview-img" src="" alt="미리보기" class="album-preview-img">
+                <input type="text" id="album-caption-input" placeholder="어떤 순간인가요? (캡션)" maxlength="60" autocomplete="off">
+                <div style="display:flex;gap:8px;">
+                    <button id="album-submit-btn" class="btn" style="flex:1;">올리기</button>
+                    <button id="album-cancel-btn" class="btn-outline" style="width:auto;padding:0.8rem 1.2rem;">취소</button>
+                </div>
+            </div>
+            <div id="album-grid" class="album-grid"></div>
+        </div>
+    </div>
+
+    <!-- 앨범 라이트박스 -->
+    <div id="album-lightbox" class="overlay hidden" style="z-index:3000;">
+        <span id="album-lightbox-close" style="position:absolute;top:20px;right:30px;font-size:40px;color:white;cursor:pointer;font-weight:bold;">&times;</span>
+        <div class="album-lightbox-content">
+            <img id="album-lightbox-img" src="" alt="">
+            <div id="album-lightbox-info" class="album-lightbox-info"></div>
+        </div>
+    </div>
+
+    <!-- ========== 우리의 지도 페이지 ========== -->
+    <div id="page-map" class="page-section hidden">
+        <div id="map-container" style="width:100%;height:100%;"></div>
+        <!-- 핀 추가 모달 -->
+        <div id="map-pin-modal" class="map-pin-modal glass-panel hidden">
+            <h3 style="margin:0 0 1rem;font-size:1rem;font-weight:800;">📍 장소 추가</h3>
+            <input type="text" id="pin-name-input" placeholder="장소 이름" maxlength="30" autocomplete="off">
+            <input type="text" id="pin-memo-input" placeholder="메모 (선택)" maxlength="60" autocomplete="off">
+            <div class="pin-category-btns">
+                <button class="pin-cat-btn active" data-cat="visited">🟢 가봤어요</button>
+                <button class="pin-cat-btn" data-cat="wishlist">🟠 가고싶어요</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:0.8rem;">
+                <button id="pin-submit-btn" class="btn" style="flex:1;">핀 추가</button>
+                <button id="pin-cancel-btn" class="btn-outline" style="width:auto;padding:0.8rem 1.2rem;">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 랜덤뽑기 페이지 ========== -->
+    <div id="page-picker" class="page-section hidden">
+        <div class="page-inner picker-layout">
+            <div class="picker-input-area glass-panel">
+                <h2 style="margin:0 0 1.2rem;font-size:1.1rem;font-weight:800;">🎲 랜덤뽑기</h2>
+                <div style="display:flex;gap:8px;margin-bottom:1rem;">
+                    <input type="text" id="picker-input" placeholder="항목 입력 후 Enter" maxlength="20" autocomplete="off" style="flex:1;">
+                    <button id="picker-add-btn" class="btn" style="width:auto;padding:0.8rem 1rem;">추가</button>
+                </div>
+                <div id="picker-items" class="picker-items"></div>
+                <button id="picker-spin-btn" class="picker-spin-btn">🎲 돌리기!</button>
+            </div>
+            <div class="picker-result-area">
+                <div id="picker-roulette" class="picker-roulette">
+                    <div id="picker-roulette-inner" class="picker-roulette-inner">
+                        <span id="picker-roulette-text">?</span>
+                    </div>
+                </div>
+                <div id="picker-result-display" class="picker-result-display hidden">
+                    <div id="picker-result-text" class="picker-result-text"></div>
+                </div>
+                <div class="picker-history-area">
+                    <p class="picker-history-label">최근 결과</p>
+                    <div id="picker-history" class="picker-history"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== 하단 네비게이션 ========== -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <button class="nav-btn active" data-page="calendar">
+            <span class="nav-icon">📅</span>
+            <span class="nav-label">캘린더</span>
+        </button>
+        <button class="nav-btn" data-page="album">
+            <span class="nav-icon">📸</span>
+            <span class="nav-label">추억앨범</span>
+        </button>
+        <button class="nav-btn" data-page="map">
+            <span class="nav-icon">🗺️</span>
+            <span class="nav-label">우리지도</span>
+        </button>
+        <button class="nav-btn" data-page="picker">
+            <span class="nav-icon">🎲</span>
+            <span class="nav-label">랜덤뽑기</span>
+        </button>
+    </nav>
+
     <script src="/socket.io/socket.io.js"></script>
-    <!-- 모듈별 분리: 리팩토링 완료 -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
     <script src="js/state.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/events.js"></script>
+    <script src="js/nav.js"></script>
+    <script src="js/album.js"></script>
+    <script src="js/map-page.js"></script>
+    <script src="js/picker.js"></script>
     <script src="js/app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

@@ -23,6 +23,8 @@ let chatHistory = [];
 let activeUsers = {};
 let notes = {};
 let pushSubscriptions = [];
+let photos = [];
+let mapPins = [];
 
 // 서버 켜질 때 기존 저장된 데이터 불러오기
 if (fs.existsSync(dataFile)) {
@@ -33,6 +35,8 @@ if (fs.existsSync(dataFile)) {
         chatHistory = parsed.chatHistory || [];
         if(parsed.notes) notes = parsed.notes;
         if(parsed.pushSubscriptions) pushSubscriptions = parsed.pushSubscriptions;
+        if(parsed.photos) photos = parsed.photos;
+        if(parsed.mapPins) mapPins = parsed.mapPins;
     } catch(e) { console.log('데이터 읽기 오류:', e); }
 }
 
@@ -43,7 +47,7 @@ function saveData() {
             const { fileData, ...rest } = msg;
             return rest;
         });
-        fs.writeFileSync(dataFile, JSON.stringify({ events, chatHistory: chatToSave, notes, pushSubscriptions }));
+        fs.writeFileSync(dataFile, JSON.stringify({ events, chatHistory: chatToSave, notes, pushSubscriptions, photos, mapPins }));
     } catch(e) { console.log('데이터 저장 오류:', e); }
 }
 
@@ -74,7 +78,7 @@ app.post('/subscribe', (req, res) => {
 let pinnedMessage = null;
 
 io.on('connection', (socket) => {
-    socket.emit('init_data', { events, chatHistory, pinnedMessage, notes });
+    socket.emit('init_data', { events, chatHistory, pinnedMessage, notes, photos, mapPins });
 
     socket.on('user_joined', (userData) => {
         const isNew = !activeUsers[socket.id];
@@ -218,6 +222,42 @@ io.on('connection', (socket) => {
         events = events.filter(e => e.id !== eventId);
         saveData();
         io.emit('sync_events', events);
+    });
+
+    // 추억앨범
+    socket.on('add_photo', (photo) => {
+        if (!photo.data || photo.data.length > 2.5 * 1024 * 1024 * 1.4) return; // ~2MB base64 limit
+        const newPhoto = { id: Date.now() + Math.floor(Math.random() * 1000), data: photo.data, caption: photo.caption || '', username: photo.username, color: photo.color, avatar: photo.avatar || '☕', date: new Date().toISOString().slice(0, 10) };
+        photos.push(newPhoto);
+        if (photos.length > 200) photos.shift();
+        saveData();
+        io.emit('sync_photos', photos);
+    });
+    socket.on('delete_photo', (id) => {
+        const user = activeUsers[socket.id];
+        const photo = photos.find(p => p.id === id);
+        if (photo && user && photo.username === user.username) {
+            photos = photos.filter(p => p.id !== id);
+            saveData();
+            io.emit('sync_photos', photos);
+        }
+    });
+
+    // 우리의 지도
+    socket.on('add_pin', (pin) => {
+        const newPin = { id: Date.now() + Math.floor(Math.random() * 1000), lat: pin.lat, lng: pin.lng, name: pin.name || '새 장소', memo: pin.memo || '', category: pin.category || 'wishlist', username: pin.username, color: pin.color };
+        mapPins.push(newPin);
+        saveData();
+        io.emit('sync_pins', mapPins);
+    });
+    socket.on('delete_pin', (id) => {
+        const user = activeUsers[socket.id];
+        const pin = mapPins.find(p => p.id === id);
+        if (pin && user && pin.username === user.username) {
+            mapPins = mapPins.filter(p => p.id !== id);
+            saveData();
+            io.emit('sync_pins', mapPins);
+        }
     });
 
     socket.on('disconnect', () => {
