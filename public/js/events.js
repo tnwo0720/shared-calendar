@@ -20,12 +20,43 @@ const detailEditBtn = document.getElementById('detail-edit-btn');
 const detailDelBtn = document.getElementById('detail-del-btn');
 const closeEventDetail = document.getElementById('close-event-detail');
 
+function renderVotes(votes, currentUser) {
+    const v = votes || { attending: [], notAttending: [], undecided: [] };
+    const results = document.getElementById('vote-results');
+    results.innerHTML = '';
+    const rows = [
+        { key: 'attending', label: '✅ 참석', list: v.attending },
+        { key: 'undecided', label: '🤔 미정', list: v.undecided },
+        { key: 'notAttending', label: '❌ 불참', list: v.notAttending }
+    ];
+    rows.forEach(({ label, list }) => {
+        if (list.length === 0) return;
+        const row = document.createElement('div');
+        row.className = 'vote-result-row';
+        row.innerHTML = `<span class="vote-result-label">${label}</span><span class="vote-result-names">${list.join(', ')}</span>`;
+        results.appendChild(row);
+    });
+    // 현재 내 투표 상태 하이라이트
+    document.querySelectorAll('.vote-btn').forEach(btn => {
+        const vote = btn.dataset.vote;
+        btn.classList.toggle('active', v[vote] && v[vote].includes(currentUser));
+    });
+}
+
 function openEventDetailModal(e) {
     detailEventTitle.textContent = e.title;
     detailEventDate.textContent = e.date;
     detailEventAuthor.textContent = e.username;
     detailEventColor.style.backgroundColor = e.color;
-    
+
+    // 투표 버튼 바인딩
+    document.querySelectorAll('.vote-btn').forEach(btn => {
+        btn.onclick = () => {
+            socket.emit('vote_event', { eventId: e.id, username: myUsername, vote: btn.dataset.vote });
+        };
+    });
+    renderVotes(e.votes, myUsername);
+
     detailEditBtn.onclick = () => { eventDetailModal.classList.add('hidden'); startEditEvent(e); };
     detailDelBtn.onclick = () => {
         if(confirm("이 일정을 삭제하시겠습니까?")) {

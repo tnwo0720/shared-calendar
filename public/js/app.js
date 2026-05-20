@@ -108,5 +108,57 @@ function urlBase64ToUint8Array(base64String) {
     return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
-// 앱 시작!
-checkSavedLogin();
+// ========================================
+// 그룹 UI
+// ========================================
+document.getElementById('group-name-display').textContent = currentGroup;
+
+document.getElementById('group-copy-btn').addEventListener('click', () => {
+    const url = `${location.origin}${location.pathname}?group=${currentGroup}`;
+    navigator.clipboard.writeText(url).then(() => showToast('🔗 초대 링크가 복사되었습니다!', '#8b6f4e'));
+});
+
+document.getElementById('group-switch-btn').addEventListener('click', async () => {
+    const overlay = document.getElementById('group-overlay');
+    const listEl = document.getElementById('group-list');
+    listEl.innerHTML = '';
+    try {
+        const groups = await fetch('/api/groups').then(r => r.json());
+        groups.forEach(name => {
+            const item = document.createElement('div');
+            item.className = 'group-list-item' + (name === currentGroup ? ' current' : '');
+            item.innerHTML = `<span>🏠</span><span>${name}</span>${name === currentGroup ? '<span style="margin-left:auto;font-size:0.7rem;opacity:0.7;">현재</span>' : ''}`;
+            item.addEventListener('click', () => {
+                document.getElementById('group-input').value = name;
+            });
+            listEl.appendChild(item);
+        });
+    } catch(e) {}
+    document.getElementById('group-input').value = '';
+    overlay.classList.remove('hidden');
+});
+
+document.getElementById('group-cancel-btn').addEventListener('click', () => {
+    document.getElementById('group-overlay').classList.add('hidden');
+});
+
+document.getElementById('group-confirm-btn').addEventListener('click', () => {
+    const val = document.getElementById('group-input').value.trim() || 'default';
+    const clean = val.toLowerCase().replace(/[^a-z0-9가-힣_-]/g, '') || 'default';
+    const url = new URL(location.href);
+    url.searchParams.set('group', clean);
+    location.href = url.toString();
+});
+
+document.getElementById('group-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('group-confirm-btn').click();
+});
+
+document.getElementById('group-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('group-overlay'))
+        document.getElementById('group-overlay').classList.add('hidden');
+});
+
+// ========================================
+// 푸시 알림 구독 설정
+// ========================================

@@ -18,6 +18,20 @@
     <div class="bg-image"></div>
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- 그룹 선택 오버레이 -->
+    <div id="group-overlay" class="group-overlay hidden">
+        <div class="group-modal glass-panel">
+            <h3>🏠 그룹 변경</h3>
+            <p>그룹 이름을 입력하거나 아래 목록에서 선택하세요.<br>같은 그룹 이름을 쓰는 사람들끼리 일정을 공유해요.</p>
+            <div id="group-list" class="group-list"></div>
+            <input type="text" id="group-input" placeholder="새 그룹 이름 (예: 친구들, 가족)" maxlength="20" autocomplete="off">
+            <div class="group-modal-actions">
+                <button id="group-confirm-btn" class="btn" style="flex:1;">이 그룹으로 입장</button>
+                <button id="group-cancel-btn" class="btn-outline" style="width:auto; padding:0.8rem 1.2rem;">취소</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 이미지 크게 보기 모달 -->
     <div id="image-modal" class="overlay hidden" style="z-index: 3000;">
         <span id="close-image-modal" style="position:absolute; top:20px; right:30px; font-size:40px; color:white; cursor:pointer; font-weight:bold;">&times;</span>
@@ -34,7 +48,17 @@
                 <div id="detail-event-color" style="width: 15px; height: 15px; border-radius: 50%;"></div>
                 <span id="detail-event-author" style="font-size: 0.95rem; font-weight:700;"></span>
             </div>
-            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <!-- 참석 투표 -->
+            <div class="vote-section">
+                <div class="vote-label">참석 여부</div>
+                <div class="vote-buttons">
+                    <button class="vote-btn vote-attending" data-vote="attending">✅ 참석</button>
+                    <button class="vote-btn vote-undecided" data-vote="undecided">🤔 미정</button>
+                    <button class="vote-btn vote-not" data-vote="notAttending">❌ 불참</button>
+                </div>
+                <div id="vote-results" class="vote-results"></div>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 0.5rem;">
                 <button id="detail-edit-btn" class="btn" style="width: auto; padding: 0.5rem 1.2rem;">수정하기</button>
                 <button id="detail-del-btn" class="btn-outline" style="width: auto; padding: 0.5rem 1.2rem; color: #d94a4a; border-color: #d94a4a;">삭제</button>
             </div>
@@ -63,6 +87,17 @@
             </div>
             <button id="join-btn" class="btn">입장하기</button>
         </div>
+    </div>
+
+    <!-- 그룹 바 -->
+    <div class="group-bar glass-panel" style="width:98%; max-width:1800px; margin:0 auto 0.8rem; border-radius:var(--radius); box-sizing:border-box;">
+        <span style="color:var(--text-muted); font-size:0.75rem; font-weight:700;">현재 그룹</span>
+        <div class="group-badge">
+            <span class="group-badge-dot"></span>
+            <span id="group-name-display">default</span>
+        </div>
+        <button class="group-copy-btn" id="group-copy-btn">🔗 링크 복사</button>
+        <button class="group-switch-btn" id="group-switch-btn">그룹 변경</button>
     </div>
 
     <div class="app-container">
