@@ -108,5 +108,24 @@ function urlBase64ToUint8Array(base64String) {
     return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
+// ========================================
+// 풀스크린 인트로
+// ========================================
+(function() {
+    const intro = document.getElementById('intro-screen');
+    if (!intro) return;
+
+    function dismissIntro() {
+        intro.classList.add('fade-out');
+        setTimeout(() => intro.remove(), 950);
+    }
+
+    // 2.6초 후 자동 종료
+    const timer = setTimeout(dismissIntro, 2600);
+
+    // 탭/클릭으로 빨리 넘기기
+    intro.addEventListener('click', () => { clearTimeout(timer); dismissIntro(); });
+})();
+
 // 앱 시작!
 checkSavedLogin();
