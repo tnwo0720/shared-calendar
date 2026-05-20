@@ -1,4 +1,4 @@
-const CACHE_NAME = 'shared-calendar-v1';
+const CACHE_NAME = 'shared-calendar-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -8,6 +8,10 @@ const STATIC_ASSETS = [
     '/js/chat.js',
     '/js/calendar.js',
     '/js/events.js',
+    '/js/nav.js',
+    '/js/album.js',
+    '/js/map-page.js',
+    '/js/picker.js',
     '/js/app.js',
     '/icon-192.png',
     '/icon-512.png',
