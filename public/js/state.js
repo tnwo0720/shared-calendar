@@ -1,12 +1,7 @@
 // ========================================
 // state.js — 공유 변수 & 유틸리티
 // ========================================
-
-// URL 쿼리에서 그룹 읽기 (?group=친구들)
-const currentGroup = (new URLSearchParams(location.search).get('group') || 'default')
-    .trim().toLowerCase().replace(/[^a-z0-9가-힣_-]/g, '') || 'default';
-
-const socket = io({ query: { group: currentGroup } });
+const socket = io();
 
 // 전역 상태
 let myUsername = '';
